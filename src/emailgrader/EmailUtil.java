@@ -39,6 +39,7 @@ public abstract class EmailUtil
 	
 	private Timer queryTimer;
 	private TimerTask queryTask;
+	private boolean queryTaskActive;
 
 	public EmailUtil(String popHost,
 						int popPort, 
@@ -71,7 +72,6 @@ public abstract class EmailUtil
 		this.emailSession = Session.getDefaultInstance(this.properties);
 		this.smtpTransport = this.emailSession.getTransport("smtp");
 		this.smtpTransport.connect(this.username, this.password);
-		this.queryTimer = new Timer();
 		this.queryTask = new TimerTask()
 		{
 			public void run() 
@@ -92,7 +92,20 @@ public abstract class EmailUtil
 		        }
 		    }  
 		};
+		this.queryTaskActive = false;
+	}
+	
+	public void startQueryTask()
+	{
+		this.queryTimer = new Timer();
 		this.queryTimer.scheduleAtFixedRate(this.queryTask, 0L, this.queryPeriod);
+		this.queryTaskActive = true;
+	}
+	
+	public void stopQueryTask()
+	{
+		this.queryTimer.cancel();
+		this.queryTaskActive = false;
 	}
 
 	public void replyToInboxMessage(Message message, String replyBody) throws AddressException, MessagingException
