@@ -9,6 +9,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import graderobjects.PostExecutionResults;
+
 public class ProgramIOUtil 
 {
 	private ExecutableLocator eld;

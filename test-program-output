@@ -1,6 +1,6 @@
 total 1.9M
--rw-r--r-- 1 Asriel Dreemurr Administrators    0 Jul  8 20:41 test-program-error
--rw-r--r-- 1 Asriel Dreemurr Administrators    0 Jul  8 20:41 test-program-output
+-rw-r--r-- 1 Asriel Dreemurr Administrators    0 Jul  8 20:52 test-program-error
+-rw-r--r-- 1 Asriel Dreemurr Administrators    0 Jul  8 20:52 test-program-output
 drwxr-xr-x 2 Asriel Dreemurr Administrators    0 Jul  8 20:32 config
 -rwxr-xr-x 1 Asriel Dreemurr Administrators 996K Jul  8 20:29 msys-iconv-2.dll
 -rwxr-xr-x 1 Asriel Dreemurr Administrators  47K Jul  8 20:29 msys-intl-8.dll
