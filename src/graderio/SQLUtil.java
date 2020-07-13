@@ -72,18 +72,19 @@ public class SQLUtil
 		{
 			return GraderInfo.START_SUBMISSION_ID;
 		}
-		rs.first();
+		//rs.first();
 		long id = rs.getLong("id");
 		return (id < GraderInfo.START_SUBMISSION_ID) ? GraderInfo.START_SUBMISSION_ID : id + 1;
 	}
 	
-	public void addSubmissionToQueue(String senderEmail, long date, String subject, String body) throws SQLException
+	public ContestSubmission addSubmissionToQueue(String senderEmail, long date, String subject, String body) throws SQLException
 	{
 		synchronized (this.sqlConnection)
 		{
 			long id = this.getNextSubmissionId();
 			ContestSubmission toAdd = new ContestSubmission(id, senderEmail, date, subject, body, SubmissionState.AWAITING_PROCESSING);
 			insertSubmission(toAdd);
+			return toAdd;
 		}
 	}
 	
@@ -154,26 +155,32 @@ public class SQLUtil
 		PreparedStatement stmt = this.sqlConnection.prepareStatement(statement);
 		stmt.setLong(1, id);
 		ResultSet rs = stmt.executeQuery();
+		if (!rs.next())
+		{
+			return null;
+		}
 		return this.getSubmissionFromResultSet(rs);
 	}
 	
 	public ContestSubmission getNextPendingSubmission() throws SQLException
 	{
-		String query = "SELECT * FROM submissionsDb ORDER BY id ASC WHERE state = " + SubmissionState.AWAITING_PROCESSING.toString();
+		String query = "SELECT * FROM submissionsDb WHERE state = ? ORDER BY id ASC";
 		PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
+		stmt.setString(1, SubmissionState.AWAITING_PROCESSING.toString());
 		ResultSet rs = stmt.executeQuery();
 		if (!rs.next())
 		{
 			return null;
 		}
-		rs.first();
+		//rs.first();
 		return getSubmissionFromResultSet(rs);
 	}
 	
 	public int getPendingSubmissionCount() throws SQLException
 	{
-		String query = "SELECT * FROM submissionsDb WHERE state = " + SubmissionState.AWAITING_PROCESSING.toString();
+		String query = "SELECT * FROM submissionsDb WHERE state = ?";
 		PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
+		stmt.setString(1, SubmissionState.AWAITING_PROCESSING.toString());
 		ResultSet rs = stmt.executeQuery();
 		int i = 0;
 		while (rs.next()) 
