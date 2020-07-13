@@ -19,8 +19,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.FlagTerm;
 
-public abstract class EmailUtil
-{
+public abstract class EmailUtil {
 	private String popHost;
 	private int popPort;
 	private boolean enablePopTls;
@@ -34,23 +33,15 @@ public abstract class EmailUtil
 	private Properties properties;
 	private Session emailSession;
 	private Store store;
-	
+
 	private Transport smtpTransport;
-	
+
 	private Timer queryTimer;
 	private TimerTask queryTask;
 	private boolean queryTaskActive;
 
-	public EmailUtil(String popHost,
-						int popPort, 
-						boolean enablePopTls,
-						String smtpHost,
-						int smtpPort,
-						boolean enableSmtpTls,
-						String username,
-						String password,
-						long queryPeriod) throws MessagingException 
-	{
+	public EmailUtil(String popHost, int popPort, boolean enablePopTls, String smtpHost, int smtpPort,
+			boolean enableSmtpTls, String username, String password, long queryPeriod) throws MessagingException {
 		this.popHost = popHost;
 		this.popPort = popPort;
 		this.enablePopTls = enablePopTls;
@@ -72,58 +63,47 @@ public abstract class EmailUtil
 		this.emailSession = Session.getDefaultInstance(this.properties);
 		this.smtpTransport = this.emailSession.getTransport("smtp");
 		this.smtpTransport.connect(this.username, this.password);
-		this.queryTask = new TimerTask()
-		{
-			public void run() 
-			{
-				try
-				{
+		this.queryTask = new TimerTask() {
+			public void run() {
+				try {
 					System.out.println("Began query");
 					Message[] messages = fetchInboxMessages(false);
-		    		for (Message m : messages)
-		    		{
-		    			onReceivedMessageCallback(m);
-		    		}
-		    		System.out.println("End query");
-		        }
-		        catch (Exception e)
-		        {
-		        	e.printStackTrace();	
-		        }
-		    }  
+					for (Message m : messages) {
+						onReceivedMessageCallback(m);
+					}
+					System.out.println("End query");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
 		};
 		this.queryTaskActive = false;
 	}
-	
-	public void startQueryTask()
-	{
+
+	public void startQueryTask() {
 		this.queryTimer = new Timer();
 		this.queryTimer.scheduleAtFixedRate(this.queryTask, 0L, this.queryPeriod);
 		this.queryTaskActive = true;
 	}
-	
-	public void stopQueryTask()
-	{
+
+	public void stopQueryTask() {
 		this.queryTimer.cancel();
 		this.queryTaskActive = false;
 	}
 
-	public void replyToInboxMessage(Message message, String replyBody) throws AddressException, MessagingException
-	{
+	public void replyToInboxMessage(Message message, String replyBody) throws AddressException, MessagingException {
 		Message replyMessage = new MimeMessage(this.emailSession);
 		replyMessage = (MimeMessage) message.reply(false);
-		replyMessage.setFrom(new InternetAddress(InternetAddress.toString(message
-		         .getRecipients(Message.RecipientType.TO))));
+		replyMessage.setFrom(
+				new InternetAddress(InternetAddress.toString(message.getRecipients(Message.RecipientType.TO))));
 		replyMessage.setText(replyBody);
 		replyMessage.setReplyTo(message.getReplyTo());
 		this.smtpTransport.sendMessage(replyMessage, replyMessage.getAllRecipients());
 	}
 
-	public Message[] fetchInboxMessages(boolean read) throws MessagingException 
-	{
+	public Message[] fetchInboxMessages(boolean read) throws MessagingException {
 		// search for all "unseen" messages
-		if (this.store != null)
-		{
+		if (this.store != null) {
 			this.store.close();
 		}
 		this.store = emailSession.getStore();
@@ -133,47 +113,43 @@ public abstract class EmailUtil
 		Flags seen = new Flags(Flags.Flag.SEEN);
 		FlagTerm unseenFlagTerm = new FlagTerm(seen, read);
 		Message[] toReturn = emailFolder.search(unseenFlagTerm);
-		//emailFolder.close(); TODO: Make it stop having connection issue with more than one email
+		// emailFolder.close(); TODO: Make it stop having connection issue with more
+		// than one email
 		return toReturn;
 	}
 
-	public String getTextFromMessage(Message message) throws MessagingException, IOException 
-	{
+	public String getTextFromMessage(Message message) throws MessagingException, IOException {
 		String result = "";
-		if (message.isMimeType("text/plain")) 
-		{
+		if (message.isMimeType("text/plain")) {
 			result = message.getContent().toString();
-		}
-		else if (message.isMimeType("multipart/*"))
-		{
+		} else if (message.isMimeType("multipart/*")) {
 			MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
 			result = getTextFromMimeMultipart(mimeMultipart);
 		}
 		return result;
 	}
 
-	public String getTextFromMimeMultipart(MimeMultipart mimeMultipart) throws MessagingException, IOException 
-	{
+	public String getTextFromMimeMultipart(MimeMultipart mimeMultipart) throws MessagingException, IOException {
 		String result = "";
 		int count = mimeMultipart.getCount();
-		for (int i = 0; i < count; i++)
-		{
+		for (int i = 0; i < count; i++) {
 			BodyPart bodyPart = mimeMultipart.getBodyPart(i);
-			if (bodyPart.isMimeType("text/plain"))
-			{
+			if (bodyPart.isMimeType("text/plain")) {
 				result += bodyPart.getContent();
 				break; // without break same text appears twice in my tests
 			}
-			/*
-			 * else if (bodyPart.isMimeType("text/html")) { String html = (String)
-			 * bodyPart.getContent(); result = result + "\n" + html; } else if
-			 * (bodyPart.getContent() instanceof MimeMultipart) { result = result +
-			 * getTextFromMimeMultipart((MimeMultipart)bodyPart.getContent()); }
-			 */
+
+			else if (bodyPart.isMimeType("text/html")) {
+				String html = (String) bodyPart.getContent();
+				result = result + "\n" + html;
+			} else if (bodyPart.getContent() instanceof MimeMultipart) {
+				result = result + getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent());
+			}
+
 		}
 		return result;
 	}
-	
+
 	public abstract void onReceivedMessageCallback(Message message);
 
 }

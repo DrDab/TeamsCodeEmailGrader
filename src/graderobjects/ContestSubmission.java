@@ -2,48 +2,55 @@ package graderobjects;
 
 public class ContestSubmission 
 {
-	public String submissionEmail;
-	public ContestDivision division;
+	public long id;
+	public String senderEmail;
+	public long date;
+	public String subject;
+	public String body;
+	public SubmissionState state;
+	public ContestDivision contestDivision;
 	public String teamName;
-	public ProblemDifficulty difficulty;
-	public int problemDivisionNumber;
+	public ProblemDifficulty problemDifficulty;
 	public ProgrammingLanguage programmingLanguage;
+	public String miscInfo;
 	
-	public ContestSubmission(String submissionEmail,
-			ContestDivision division,
-			String teamName,
-			ProblemDifficulty difficulty,
-			int problemDivisionNumber,
-			ProgrammingLanguage programmingLanguage)
+	public ContestSubmission(long id, 
+							 String senderEmail, 
+							 long date,
+							 String subject, 
+							 String body, 
+							 SubmissionState state,
+							 ContestDivision contestDivision,
+							 String teamName,
+							 ProblemDifficulty problemDifficulty,
+							 ProgrammingLanguage programmingLanguage, 
+							 String miscInfo)
 	{
-		this.submissionEmail = submissionEmail;
-		this.division = division;
+		this.id = id;
+		this.senderEmail = senderEmail;
+		this.date = date;
+		this.subject = subject;
+		this.body = body;
+		this.state = state;
+		this.contestDivision = contestDivision;
 		this.teamName = teamName;
-		this.difficulty = difficulty;
-		this.problemDivisionNumber = problemDivisionNumber;
+		this.problemDifficulty = problemDifficulty;
 		this.programmingLanguage = programmingLanguage;
+		this.miscInfo = miscInfo;
 	}
 	
-	public int getProblemId()
+	public ContestSubmission(long id, String senderEmail, long date, String subject, String body, SubmissionState state)
 	{
-		int owo = 0;
-		switch (this.difficulty)
-		{
-			case EASY:
-				owo = 1;
-				break;
-				
-			case MEDIUM:
-				owo = 6;
-				break;
-				
-			case HARD:
-				owo = 11;
-				break;
-				
-			default:
-				break;
-		}
-		return owo + this.problemDivisionNumber;
+		this(id,
+			 senderEmail, 
+			 date,
+			 subject, 
+			 body, 
+			 state, 
+			 null, 
+			 null,
+			 null, 
+			 null, 
+			 null);
 	}
 }
