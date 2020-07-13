@@ -13,11 +13,14 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.Transport;
+import javax.mail.UIDFolder;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.FlagTerm;
+
+import graderobjects.UIDMessageEncapsulator;
 
 public abstract class EmailUtil
 {
@@ -72,8 +75,8 @@ public abstract class EmailUtil
                 try
                 {
                     System.out.println("Began query");
-                    Message[] messages = fetchInboxMessages(false);
-                    for (Message m : messages)
+                    UIDMessageEncapsulator[] messageEncapsulators = fetchInboxMessages(false);
+                    for (UIDMessageEncapsulator m : messageEncapsulators)
                     {
                         onReceivedMessageCallback(m);
                     }
@@ -117,7 +120,7 @@ public abstract class EmailUtil
         this.smtpTransport.sendMessage(replyMessage, replyMessage.getAllRecipients());
     }
 
-    public Message[] fetchInboxMessages(boolean read) throws MessagingException
+    public UIDMessageEncapsulator[] fetchInboxMessages(boolean read) throws MessagingException
     {
         // search for all "unseen" messages
         if (this.store != null)
@@ -127,11 +130,17 @@ public abstract class EmailUtil
         this.store = emailSession.getStore("imaps");
         this.store.connect(this.imapHost, this.imapPort, this.username, this.password);
         Folder emailFolder = store.getFolder("INBOX");
+        UIDFolder uidFolder = (UIDFolder) emailFolder;
         emailFolder.open(Folder.READ_WRITE);
         Flags seen = new Flags(Flags.Flag.SEEN);
         FlagTerm unseenFlagTerm = new FlagTerm(seen, read);
-        Message[] toReturn = emailFolder.search(unseenFlagTerm);
-        return toReturn;
+        Message[] messages = emailFolder.search(unseenFlagTerm);
+        UIDMessageEncapsulator[] encapsulators = new UIDMessageEncapsulator[messages.length];
+        for (int i = 0; i < messages.length; i++)
+        {
+            encapsulators[i] = new UIDMessageEncapsulator(messages[i], uidFolder.getUID(messages[i]));
+        }
+        return encapsulators;
     }
 
     public String getTextFromMessage(Message message) throws MessagingException, IOException
@@ -176,6 +185,6 @@ public abstract class EmailUtil
         return result;
     }
 
-    public abstract void onReceivedMessageCallback(Message message);
+    public abstract void onReceivedMessageCallback(UIDMessageEncapsulator uidMessageEncapsulator);
 
 }
