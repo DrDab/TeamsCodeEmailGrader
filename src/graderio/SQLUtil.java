@@ -55,7 +55,7 @@ public class SQLUtil
         ResultSet tables = dbm.getTables(null, null, "submissionsDb", null);
         if (!tables.next())
         {
-            String query = "CREATE TABLE submissionsDb(id INT, senderEmail TEXT, submissionDate INT, "
+            String query = "CREATE TABLE submissionsDb(id INT, uid INT, senderEmail TEXT, submissionDate INT, "
                 + "subject TEXT NULL, body TEXT NULL, state TEXT, contestDivision TEXT NULL, teamName TEXT NULL,"
                 + " problemDifficulty TEXT NULL, programmingLanguage TEXT NULL, miscInfo TEXT NULL);";
             PreparedStatement stmt = sqlConnection.prepareStatement(query);
@@ -77,13 +77,13 @@ public class SQLUtil
         return (id < GraderInfo.START_SUBMISSION_ID) ? GraderInfo.START_SUBMISSION_ID : id + 1;
     }
 
-    public ContestSubmission addSubmissionToQueue(String senderEmail, long date, String subject, String body)
+    public ContestSubmission addSubmissionToQueue(long uid, String senderEmail, long date, String subject, String body)
         throws SQLException
     {
         synchronized (this.sqlConnection)
         {
             long id = this.getNextSubmissionId();
-            ContestSubmission toAdd = new ContestSubmission(id, senderEmail, date, subject, body,
+            ContestSubmission toAdd = new ContestSubmission(id, uid, senderEmail, date, subject, body,
                 SubmissionState.AWAITING_PROCESSING);
             insertSubmission(toAdd);
             return toAdd;
@@ -104,20 +104,21 @@ public class SQLUtil
 
     private void insertSubmission(ContestSubmission submission) throws SQLException
     {
-        String statement = "INSERT INTO submissionsDb(id, senderEmail, submissionDate, subject, body, state, "
-            + "contestDivision, teamName, problemDifficulty, programmingLanguage, miscInfo) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+        String statement = "INSERT INTO submissionsDb(id, uid, senderEmail, submissionDate, subject, body, state, "
+            + "contestDivision, teamName, problemDifficulty, programmingLanguage, miscInfo) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
         PreparedStatement stmt = this.sqlConnection.prepareStatement(statement);
         stmt.setLong(1, submission.id);
-        stmt.setString(2, submission.senderEmail);
-        stmt.setLong(3, submission.date);
-        setStatementStringNullPossible(stmt, 4, submission.subject);
-        setStatementStringNullPossible(stmt, 5, submission.body);
-        stmt.setString(6, submission.state.toString());
-        setStatementStringNullPossible(stmt, 7, submission.contestDivision);
-        setStatementStringNullPossible(stmt, 8, submission.teamName);
-        setStatementStringNullPossible(stmt, 9, submission.problemDifficulty);
-        setStatementStringNullPossible(stmt, 10, submission.programmingLanguage);
-        setStatementStringNullPossible(stmt, 11, submission.miscInfo);
+        stmt.setLong(2, submission.uid);
+        stmt.setString(3, submission.senderEmail);
+        stmt.setLong(4, submission.date);
+        setStatementStringNullPossible(stmt, 5, submission.subject);
+        setStatementStringNullPossible(stmt, 6, submission.body);
+        stmt.setString(7, submission.state.toString());
+        setStatementStringNullPossible(stmt, 8, submission.contestDivision);
+        setStatementStringNullPossible(stmt, 9, submission.teamName);
+        setStatementStringNullPossible(stmt, 10, submission.problemDifficulty);
+        setStatementStringNullPossible(stmt, 11, submission.programmingLanguage);
+        setStatementStringNullPossible(stmt, 12, submission.miscInfo);
         stmt.execute();
     }
 
@@ -142,8 +143,8 @@ public class SQLUtil
 
     private ContestSubmission getSubmissionFromResultSet(ResultSet rs) throws SQLException
     {
-        return new ContestSubmission(rs.getLong("id"), rs.getString("senderEmail"), rs.getLong("submissionDate"),
-            rs.getString("subject"), rs.getString("body"),
+        return new ContestSubmission(rs.getLong("id"), rs.getLong("uid"), rs.getString("senderEmail"),
+            rs.getLong("submissionDate"), rs.getString("subject"), rs.getString("body"),
             rs.getString("state") == null ? null : SubmissionState.valueOf(rs.getString("state")),
             rs.getString("contestDivision") == null ? null : ContestDivision.valueOf(rs.getString("contestDivision")),
             rs.getString("teamName"),
@@ -181,7 +182,7 @@ public class SQLUtil
             }
             // rs.first();
             return getSubmissionFromResultSet(rs);
-        } 
+        }
     }
 
     public int getPendingSubmissionCount() throws SQLException

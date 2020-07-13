@@ -1,6 +1,7 @@
 package graderio;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -139,6 +140,10 @@ public abstract class EmailUtil
         for (int i = 0; i < messages.length; i++)
         {
             encapsulators[i] = new UIDMessageEncapsulator(messages[i], uidFolder.getUID(messages[i]));
+        }
+        if (encapsulators.length > 0)
+        {
+            Arrays.sort(encapsulators);
         }
         return encapsulators;
     }
