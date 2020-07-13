@@ -37,8 +37,6 @@ public abstract class EmailUtil
 
     private Properties properties;
     private Session emailSession;
-    private Store store;
-
     private Transport smtpTransport;
 
     private Timer queryTimer;
@@ -110,7 +108,7 @@ public abstract class EmailUtil
         return this.queryTaskActive;
     }
 
-    public void replyToInboxMessage(Message message, String replyBody) throws AddressException, MessagingException
+    public void replyToMessage(Message message, String replyBody) throws AddressException, MessagingException
     {
         Message replyMessage = new MimeMessage(this.emailSession);
         replyMessage = (MimeMessage) message.reply(false);
@@ -121,15 +119,21 @@ public abstract class EmailUtil
         this.smtpTransport.sendMessage(replyMessage, replyMessage.getAllRecipients());
     }
 
+    public Message getMessageByUid(long uid) throws MessagingException
+    {
+        Store store = emailSession.getStore("imaps");
+        store.connect(this.imapHost, this.imapPort, this.username, this.password);
+        Folder emailFolder = store.getFolder("INBOX");
+        emailFolder.open(Folder.READ_WRITE);
+        UIDFolder uidFolder = (UIDFolder) emailFolder;
+        return uidFolder.getMessageByUID(uid);
+    }
+
     public UIDMessageEncapsulator[] fetchInboxMessages(boolean read) throws MessagingException
     {
         // search for all "unseen" messages
-        if (this.store != null)
-        {
-            this.store.close();
-        }
-        this.store = emailSession.getStore("imaps");
-        this.store.connect(this.imapHost, this.imapPort, this.username, this.password);
+        Store store = emailSession.getStore("imaps");
+        store.connect(this.imapHost, this.imapPort, this.username, this.password);
         Folder emailFolder = store.getFolder("INBOX");
         UIDFolder uidFolder = (UIDFolder) emailFolder;
         emailFolder.open(Folder.READ_WRITE);
