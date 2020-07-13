@@ -63,7 +63,7 @@ public class SQLUtil
         }
     }
 
-    public long getNextSubmissionId() throws SQLException
+    private long getNextSubmissionId() throws SQLException
     {
         String query = "SELECT * FROM submissionsDb ORDER BY id DESC";
         PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
@@ -125,16 +125,19 @@ public class SQLUtil
     // (for security reasons).
     public void updateSubmissionStatus(ContestSubmission submission) throws SQLException
     {
-        String statement = "UPDATE submissionsDb SET state = ?, contestDivision = ?, teamName = ?, problemDifficulty = ?, programmingLanguage = ?, miscInfo = ? WHERE id = ?";
-        PreparedStatement stmt = this.sqlConnection.prepareStatement(statement);
-        stmt.setString(1, submission.state.toString());
-        setStatementStringNullPossible(stmt, 2, submission.contestDivision);
-        setStatementStringNullPossible(stmt, 3, submission.teamName);
-        setStatementStringNullPossible(stmt, 4, submission.problemDifficulty);
-        setStatementStringNullPossible(stmt, 5, submission.programmingLanguage);
-        setStatementStringNullPossible(stmt, 6, submission.miscInfo);
-        stmt.setLong(7, submission.id);
-        stmt.execute();
+        synchronized (this.sqlConnection)
+        {
+            String statement = "UPDATE submissionsDb SET state = ?, contestDivision = ?, teamName = ?, problemDifficulty = ?, programmingLanguage = ?, miscInfo = ? WHERE id = ?";
+            PreparedStatement stmt = this.sqlConnection.prepareStatement(statement);
+            stmt.setString(1, submission.state.toString());
+            setStatementStringNullPossible(stmt, 2, submission.contestDivision);
+            setStatementStringNullPossible(stmt, 3, submission.teamName);
+            setStatementStringNullPossible(stmt, 4, submission.problemDifficulty);
+            setStatementStringNullPossible(stmt, 5, submission.programmingLanguage);
+            setStatementStringNullPossible(stmt, 6, submission.miscInfo);
+            stmt.setLong(7, submission.id);
+            stmt.execute();
+        }
     }
 
     private ContestSubmission getSubmissionFromResultSet(ResultSet rs) throws SQLException
@@ -166,30 +169,36 @@ public class SQLUtil
 
     public ContestSubmission getNextPendingSubmission() throws SQLException
     {
-        String query = "SELECT * FROM submissionsDb WHERE state = ? ORDER BY id ASC";
-        PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
-        stmt.setString(1, SubmissionState.AWAITING_PROCESSING.toString());
-        ResultSet rs = stmt.executeQuery();
-        if (!rs.next())
+        synchronized (this.sqlConnection)
         {
-            return null;
-        }
-        // rs.first();
-        return getSubmissionFromResultSet(rs);
+            String query = "SELECT * FROM submissionsDb WHERE state = ? ORDER BY id ASC";
+            PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
+            stmt.setString(1, SubmissionState.AWAITING_PROCESSING.toString());
+            ResultSet rs = stmt.executeQuery();
+            if (!rs.next())
+            {
+                return null;
+            }
+            // rs.first();
+            return getSubmissionFromResultSet(rs);
+        } 
     }
 
     public int getPendingSubmissionCount() throws SQLException
     {
-        String query = "SELECT * FROM submissionsDb WHERE state = ?";
-        PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
-        stmt.setString(1, SubmissionState.AWAITING_PROCESSING.toString());
-        ResultSet rs = stmt.executeQuery();
-        int i = 0;
-        while (rs.next())
+        synchronized (this.sqlConnection)
         {
-            i++;
+            String query = "SELECT * FROM submissionsDb WHERE state = ?";
+            PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
+            stmt.setString(1, SubmissionState.AWAITING_PROCESSING.toString());
+            ResultSet rs = stmt.executeQuery();
+            int i = 0;
+            while (rs.next())
+            {
+                i++;
+            }
+            return i;
         }
-        return i;
     }
 
     public boolean hasPendingSubmission() throws SQLException

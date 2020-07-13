@@ -131,9 +131,6 @@ public abstract class EmailUtil
         Flags seen = new Flags(Flags.Flag.SEEN);
         FlagTerm unseenFlagTerm = new FlagTerm(seen, read);
         Message[] toReturn = emailFolder.search(unseenFlagTerm);
-        // emailFolder.close(); TODO: Make it stop having connection issue with
-        // more
-        // than one email
         return toReturn;
     }
 
