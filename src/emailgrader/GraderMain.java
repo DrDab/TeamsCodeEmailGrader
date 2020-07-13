@@ -38,9 +38,9 @@ public class GraderMain
                 }
             }
         };
-        //es.startQueryTask();
-        Message msg = es.getMessageByUid(230);
-        System.out.println(msg.getSubject());
-        System.out.println(es.getTextFromMessage(msg));
+        es.startQueryTask();
+        //Message msg = es.getMessageByUid(230);
+        //System.out.println(msg.getSubject());
+        //System.out.println(es.getTextFromMessage(msg));
     }
 }
