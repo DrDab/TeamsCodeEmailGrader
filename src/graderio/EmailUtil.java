@@ -38,6 +38,7 @@ public abstract class EmailUtil
     private Properties properties;
     private Session emailSession;
     private Transport smtpTransport;
+    private Store store;
 
     private Timer queryTimer;
     private TimerTask queryTask;
@@ -67,6 +68,8 @@ public abstract class EmailUtil
         this.emailSession = Session.getDefaultInstance(this.properties);
         this.smtpTransport = this.emailSession.getTransport("smtp");
         this.smtpTransport.connect(this.username, this.password);
+        this.store = emailSession.getStore("imaps");
+        this.store.connect(this.imapHost, this.imapPort, this.username, this.password);
         this.queryTask = new TimerTask()
         {
             public void run()
@@ -121,9 +124,7 @@ public abstract class EmailUtil
 
     public Message getMessageByUid(long uid) throws MessagingException
     {
-        Store store = emailSession.getStore("imaps");
-        store.connect(this.imapHost, this.imapPort, this.username, this.password);
-        Folder emailFolder = store.getFolder("INBOX");
+        Folder emailFolder = this.store.getFolder("INBOX");
         emailFolder.open(Folder.READ_WRITE);
         UIDFolder uidFolder = (UIDFolder) emailFolder;
         return uidFolder.getMessageByUID(uid);
@@ -132,9 +133,7 @@ public abstract class EmailUtil
     public UIDMessageEncapsulator[] fetchInboxMessages(boolean read) throws MessagingException
     {
         // search for all "unseen" messages
-        Store store = emailSession.getStore("imaps");
-        store.connect(this.imapHost, this.imapPort, this.username, this.password);
-        Folder emailFolder = store.getFolder("INBOX");
+        Folder emailFolder = this.store.getFolder("INBOX");
         UIDFolder uidFolder = (UIDFolder) emailFolder;
         emailFolder.open(Folder.READ_WRITE);
         Flags seen = new Flags(Flags.Flag.SEEN);
