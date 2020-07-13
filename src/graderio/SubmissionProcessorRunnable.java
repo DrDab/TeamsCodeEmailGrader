@@ -4,15 +4,18 @@ import java.sql.SQLException;
 
 import graderobjects.ContestSubmission;
 
+@SuppressWarnings("unused")
 public class SubmissionProcessorRunnable implements Runnable
 {
     private SubmissionProcessor submissionProcessor;
     private SQLUtil sqlUtil;
+    private boolean finished;
     
     public SubmissionProcessorRunnable(SubmissionProcessor submissionProcessor, SQLUtil sqlUtil)
     {
         this.submissionProcessor = submissionProcessor;
         this.sqlUtil = sqlUtil;
+        this.finished = false;
     }
 
     @Override
@@ -39,6 +42,12 @@ public class SubmissionProcessorRunnable implements Runnable
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        this.finished = true;
+    }
+    
+    public boolean isFinished()
+    {
+        return this.isFinished();
     }
 
 }
