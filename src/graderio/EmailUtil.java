@@ -21,9 +21,9 @@ import javax.mail.search.FlagTerm;
 
 public abstract class EmailUtil
 {
-    private String popHost;
-    private int popPort;
-    private boolean enablePopTls;
+    private String imapHost;
+    private int imapPort;
+    private boolean enableImapTls;
     private String smtpHost;
     private int smtpPort;
     private boolean enableSmtpTls;
@@ -41,12 +41,12 @@ public abstract class EmailUtil
     private TimerTask queryTask;
     private boolean queryTaskActive;
 
-    public EmailUtil(String popHost, int popPort, boolean enablePopTls, String smtpHost, int smtpPort,
+    public EmailUtil(String imapHost, int imapPort, boolean enableImapTls, String smtpHost, int smtpPort,
         boolean enableSmtpTls, String username, String password, long queryPeriod) throws MessagingException
     {
-        this.popHost = popHost;
-        this.popPort = popPort;
-        this.enablePopTls = enablePopTls;
+        this.imapHost = imapHost;
+        this.imapPort = imapPort;
+        this.enableImapTls = enableImapTls;
         this.smtpHost = smtpHost;
         this.smtpPort = smtpPort;
         this.enableSmtpTls = enableSmtpTls;
@@ -55,9 +55,9 @@ public abstract class EmailUtil
         this.queryPeriod = queryPeriod;
         this.properties = new Properties();
         this.properties.put("mail.store.protocol", "imaps");
-        this.properties.put("mail.pop3.host", this.popHost);
-        this.properties.put("mail.pop3.port", this.popPort + "");
-        this.properties.put("mail.pop3.starttls.enable", this.enablePopTls + "");
+        this.properties.put("mail.imap.host", this.imapHost);
+        this.properties.put("mail.imap.port", this.imapPort + "");
+        this.properties.put("mail.imap.starttls.enable", this.enableImapTls + "");
         this.properties.put("mail.smtp.auth", "true");
         this.properties.put("mail.smtp.starttls.enable", this.enableSmtpTls + "");
         this.properties.put("mail.smtp.host", this.smtpHost);
@@ -124,8 +124,8 @@ public abstract class EmailUtil
         {
             this.store.close();
         }
-        this.store = emailSession.getStore();
-        this.store.connect(this.popHost, this.username, this.password);
+        this.store = emailSession.getStore("imaps");
+        this.store.connect(this.imapHost, this.imapPort, this.username, this.password);
         Folder emailFolder = store.getFolder("INBOX");
         emailFolder.open(Folder.READ_WRITE);
         Flags seen = new Flags(Flags.Flag.SEEN);
