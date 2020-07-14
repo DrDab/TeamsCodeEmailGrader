@@ -70,6 +70,10 @@ public abstract class EmailUtil
         this.smtpTransport.connect(this.username, this.password);
         this.store = emailSession.getStore("imaps");
         this.store.connect(this.imapHost, this.imapPort, this.username, this.password);
+    }
+    
+    private void initQueryTask()
+    {
         this.queryTask = new TimerTask()
         {
             public void run()
@@ -95,6 +99,7 @@ public abstract class EmailUtil
 
     public void startQueryTask()
     {
+        this.initQueryTask();
         this.queryTimer = new Timer();
         this.queryTimer.scheduleAtFixedRate(this.queryTask, 0L, this.queryPeriod);
         this.queryTaskActive = true;
@@ -103,6 +108,7 @@ public abstract class EmailUtil
     public void stopQueryTask()
     {
         this.queryTimer.cancel();
+        this.queryTimer.purge();
         this.queryTaskActive = false;
     }
 

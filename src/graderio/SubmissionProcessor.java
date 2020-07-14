@@ -26,6 +26,7 @@ public class SubmissionProcessor
         }
         this.stop = false;
         this.processorThread.start();
+        //System.out.println("processor started");
     }
 
     public void stopProcessor()
@@ -39,6 +40,6 @@ public class SubmissionProcessor
     
     public boolean isStopped()
     {
-        return !this.stop;
+        return this.stop;
     }
 }
