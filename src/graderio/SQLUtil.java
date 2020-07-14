@@ -7,10 +7,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.ArrayList;
 
 import emailgrader.GraderInfo;
 import graderobjects.ContestDivision;
 import graderobjects.ContestSubmission;
+import graderobjects.ContestTeam;
 import graderobjects.ProblemDifficulty;
 import graderobjects.ProgrammingLanguage;
 import graderobjects.SubmissionState;
@@ -58,6 +60,63 @@ public class SQLUtil
             PreparedStatement stmt = sqlConnection.prepareStatement(query);
             stmt.execute();
         }
+    }
+
+    private ContestTeam getTeamFromResultSet(ResultSet rs) throws SQLException
+    {
+        if (rs == null)
+        {
+            return null;
+        }
+        if (!rs.next())
+        {
+            return null;
+        }
+        int limit = 6; // TODO: don't make the limit hard-coded
+        String teamName = rs.getString("name");
+        ContestDivision division = ContestDivision.valueOf(rs.getString("division"));
+        ArrayList<String> emails = new ArrayList<String>();
+        for (int i = 1; i <= limit; i++)
+        {
+            String uwu = rs.getString("email" + i);
+            if (uwu != null)
+            {
+                emails.add(uwu);
+            }
+        }
+
+        return new ContestTeam(teamName, division, emails);
+    }
+
+    public ContestTeam getTeamFromEmail(String email) throws SQLException
+    {
+        String query = "SELECT * FROM contestantsDb WHERE ";
+        int limit = 6; // TODO: don't make the limit hard-coded
+        for (int i = 1; i <= limit; i++)
+        {
+            query += "email" + i + " = ?";
+            if (i != limit)
+            {
+                query += " OR ";
+            }
+        }
+        query += ";";
+        PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
+        for (int i = 1; i <= limit; i++)
+        {
+            stmt.setString(i, email);
+        }
+        ResultSet rs = stmt.executeQuery();
+        return getTeamFromResultSet(rs);
+    }
+    
+    public ContestTeam getTeamByName(String name) throws SQLException
+    {
+        String query = "SELECT * FROM contestantsDb WHERE name = ?";
+        PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
+        stmt.setString(1, name);
+        ResultSet rs = stmt.executeQuery();
+        return getTeamFromResultSet(rs);
     }
 
     private long getNextSubmissionId() throws SQLException
@@ -140,6 +199,14 @@ public class SQLUtil
 
     private ContestSubmission getSubmissionFromResultSet(ResultSet rs) throws SQLException
     {
+        if (rs == null)
+        {
+            return null;
+        }
+        if (!rs.next())
+        {
+            return null;
+        }
         return new ContestSubmission(rs.getLong("id"), rs.getLong("uid"), rs.getString("senderEmail"),
             rs.getLong("submissionDate"), rs.getString("subject"), rs.getString("body"),
             rs.getString("state") == null ? null : SubmissionState.valueOf(rs.getString("state")),
@@ -158,10 +225,6 @@ public class SQLUtil
         PreparedStatement stmt = this.sqlConnection.prepareStatement(statement);
         stmt.setLong(1, id);
         ResultSet rs = stmt.executeQuery();
-        if (!rs.next())
-        {
-            return null;
-        }
         return this.getSubmissionFromResultSet(rs);
     }
 
@@ -173,12 +236,7 @@ public class SQLUtil
             PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
             stmt.setString(1, SubmissionState.AWAITING_PROCESSING.toString());
             ResultSet rs = stmt.executeQuery();
-            if (!rs.next())
-            {
-                return null;
-            }
-            // rs.first();
-            return getSubmissionFromResultSet(rs);
+            return this.getSubmissionFromResultSet(rs);
         }
     }
 
