@@ -12,24 +12,84 @@ import java.util.List;
 import emailgrader.GraderInfo;
 import graderobjects.ExecutionResultStatus;
 import graderobjects.PostExecutionResults;
+import graderobjects.ProgrammingLanguage;
 
 public class ProgramIOUtil
 {
-    private GraderInfo graderInfo;
     private ExecutableLocator eld;
-   
+
     public ProgramIOUtil(GraderInfo graderInfo)
     {
-        this.graderInfo = graderInfo;
         this.eld = new ExecutableLocator(graderInfo);
     }
 
-    public PostExecutionResults runExecutable(File toRun, List<String> args, String stdin, String logName,
+    public PostExecutionResults compileProgram(String submissionId, File toCompile, ProgrammingLanguage language,
         long timeoutMs) throws InterruptedException
     {
-        System.out.println(toRun);
+        if (!toCompile.getParentFile().exists())
+        {
+            toCompile.getParentFile().mkdir();
+        }
+        ArrayList<String> commandArgs = new ArrayList<String>();
+
+        switch (language)
+        {
+            case C:
+                commandArgs.add(eld.getGCC());
+                commandArgs.add(toCompile.getAbsolutePath());
+                commandArgs.add("-lm");
+                commandArgs.add("-O2");
+                commandArgs.add("-o");
+                commandArgs.add(toCompile.getParent() + "/toExecute");
+                break;
+
+            case C_PLUS_PLUS:
+                commandArgs.add(eld.getGPP());
+                commandArgs.add(toCompile.getAbsolutePath());
+                commandArgs.add("--std=c++11");
+                commandArgs.add("-lm");
+                commandArgs.add("-O2");
+                commandArgs.add("-o");
+                commandArgs.add(toCompile.getParent() + "/toExecute");
+                break;
+
+            case JAVA:
+                commandArgs.add(eld.getJavac());
+                commandArgs.add("-source");
+                commandArgs.add("1.8");
+                commandArgs.add("-target");
+                commandArgs.add("1.8");
+                commandArgs.add(toCompile.getAbsolutePath());
+                commandArgs.add("-d");
+                commandArgs.add(toCompile.getParent());
+                break;
+
+            case C_SHARP:
+                commandArgs.add(eld.getMCS());
+                commandArgs.add("-out:toExecute.exe");
+                commandArgs.add("-pkg:dotnet");
+                commandArgs.add(toCompile.getName());
+                break;
+
+            case PYTHON_2:
+            case PYTHON_3:
+            default:
+                return new PostExecutionResults(null, null, null, 0.0, ExecutionResultStatus.SUCCESS);
+        }
+
+        return runExecutable(null, commandArgs, null, submissionId, toCompile.getParentFile(), timeoutMs);
+    }
+
+    public PostExecutionResults runExecutable(File toRun, List<String> args, String stdin, String logName,
+        File logFileDirectory, long timeoutMs) throws InterruptedException
+    {
         List<String> pbArgs = new ArrayList<>();
-        pbArgs.add(toRun.toString());
+
+        if (toRun != null)
+        {
+            pbArgs.add(toRun.toString());
+        }
+
         if (args != null)
         {
             for (String arg : args)
@@ -37,10 +97,12 @@ public class ProgramIOUtil
                 pbArgs.add(arg);
             }
         }
-        File programOutputFile = toRun.getParent() == null ? new File(logName + "-program-output")
-            : new File(toRun.getParent(), logName + "-program-output");
-        File programErrFile = toRun.getParent() == null ? new File(logName + "-program-error")
-            : new File(toRun.getParent(), logName + "-program-error");
+
+        File programOutputFile = logFileDirectory == null ? new File(logName + "-program-output")
+            : new File(logFileDirectory, logName + "-program-output");
+        File programErrFile = logFileDirectory == null ? new File(logName + "-program-error")
+            : new File(logFileDirectory, logName + "-program-error");
+
         try
         {
             ArrayList<Integer> al = new ArrayList<Integer>();
@@ -90,7 +152,9 @@ public class ProgramIOUtil
 
             if (al.size() == 0)
             {
-                return new PostExecutionResults(stdin, stdout, stderr, timeTaken, ExecutionResultStatus.SUCCESS);
+                return new PostExecutionResults(stdin, stdout, stderr, timeTaken,
+                    stderr.trim().length() == 0 ? ExecutionResultStatus.SUCCESS
+                        : ExecutionResultStatus.FAILED_PROGRAM_ERR);
             }
             else
             {
@@ -105,6 +169,13 @@ public class ProgramIOUtil
             return new PostExecutionResults(e.getMessage(), e.getMessage(), e.getMessage(), 0.0,
                 ExecutionResultStatus.FAILED_COMMAND_ERR);
         }
+
+    }
+
+    public PostExecutionResults runExecutable(File toRun, List<String> args, String stdin, String logName,
+        long timeoutMs) throws InterruptedException
+    {
+        return runExecutable(toRun, args, stdin, logName, toRun.getParentFile(), timeoutMs);
     }
 
 }
