@@ -1,7 +1,5 @@
 package graderobjects;
 
-import graderio.ExecutionResultStatus;
-
 /*
  * Copyright (c) 2018-2020 TeamsCode, Victor Du
  *
