@@ -76,13 +76,13 @@ public abstract class EmailUtil
             {
                 try
                 {
-                    System.out.println("Began query");
+                    //System.out.println("Began query");
                     UIDMessageEncapsulator[] messageEncapsulators = fetchInboxMessages(false);
                     for (UIDMessageEncapsulator m : messageEncapsulators)
                     {
                         onReceivedMessageCallback(m);
                     }
-                    System.out.println("End query");
+                    //System.out.println("End query");
                 }
                 catch (Exception e)
                 {
