@@ -20,4 +20,9 @@ public class GraderInfo
     public static final String EMAIL_LOGIN_ADDR         = "user@gmail.com";  // TODO: change this!
     public static final String EMAIL_LOGIN_PWD          = "YourPasswordOwO"; // TODO: change this too!
     public static final long EMAIL_INBOX_REFRESH_RATE   = 10000L; // refresh rate for checking email inbox, milliseconds
+    
+    //
+    // SubmissionProcessor settings.
+    //
+    public static final long PROCESSOR_QUERY_RATE       = 1000L; // query rate for submission processor to check queued submissions, milliseconds
 }

@@ -7,13 +7,15 @@ public class SubmissionProcessor
     private EmailUtil emailUtil;
     private SubmissionProcessorRunnable submissionProcessorRunnable;
     private boolean stop;
+    private long queryRate;
 
-    public SubmissionProcessor(SQLUtil sqlUtil, EmailUtil emailUtil)
+    public SubmissionProcessor(SQLUtil sqlUtil, EmailUtil emailUtil, long queryRate)
     {
         this.sqlUtil = sqlUtil;
         this.emailUtil = emailUtil;
         this.stop = true;
-        this.submissionProcessorRunnable = new SubmissionProcessorRunnable(this, this.sqlUtil, this.emailUtil);
+        this.queryRate = queryRate;
+        this.submissionProcessorRunnable = new SubmissionProcessorRunnable(this, this.sqlUtil, this.emailUtil, this.queryRate);
         this.processorThread = new Thread(this.submissionProcessorRunnable);
     }
 
@@ -21,7 +23,7 @@ public class SubmissionProcessor
     {
         if (this.submissionProcessorRunnable.isFinished())
         {
-            this.submissionProcessorRunnable = new SubmissionProcessorRunnable(this, this.sqlUtil, this.emailUtil);
+            this.submissionProcessorRunnable = new SubmissionProcessorRunnable(this, this.sqlUtil, this.emailUtil, this.queryRate);
             this.processorThread = new Thread(this.submissionProcessorRunnable);
         }
         this.stop = false;

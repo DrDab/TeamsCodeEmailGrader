@@ -12,13 +12,15 @@ public class SubmissionProcessorRunnable implements Runnable
     private SQLUtil sqlUtil;
     private EmailUtil emailUtil;
     private boolean finished;
+    private long queryRate;
     
-    public SubmissionProcessorRunnable(SubmissionProcessor submissionProcessor, SQLUtil sqlUtil, EmailUtil emailUtil)
+    public SubmissionProcessorRunnable(SubmissionProcessor submissionProcessor, SQLUtil sqlUtil, EmailUtil emailUtil, long queryRate)
     {
         this.submissionProcessor = submissionProcessor;
         this.sqlUtil = sqlUtil;
         this.emailUtil = emailUtil;
         this.finished = false;
+        this.queryRate = queryRate;
     }
 
     @Override
@@ -27,10 +29,10 @@ public class SubmissionProcessorRunnable implements Runnable
         try
         {
             //System.out.println("Run block triggered");
-            while (!submissionProcessor.isStopped())
+            while (!this.submissionProcessor.isStopped())
             {
                 //System.out.println("looping");
-                while (sqlUtil.hasPendingSubmission())
+                while (this.sqlUtil.hasPendingSubmission())
                 {
                     ContestSubmission cur = sqlUtil.getNextPendingSubmission();
                     System.out.println("checking pending sub " + cur.uid);
@@ -48,9 +50,9 @@ public class SubmissionProcessorRunnable implements Runnable
                     }
                     */
                     cur.state = SubmissionState.PROCESSED_REJECTED;
-                    sqlUtil.updateSubmissionStatus(cur);
+                    this.sqlUtil.updateSubmissionStatus(cur);
                 }
-                Thread.sleep(1000L);
+                Thread.sleep(this.queryRate);
             }
         }
         catch (SQLException | InterruptedException e)
