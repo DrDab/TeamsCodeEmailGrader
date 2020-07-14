@@ -15,8 +15,10 @@ public class GraderMain
 {
     public static void main(String[] args) throws IOException, MessagingException, SQLException
     {
-        SQLUtil sqlUtil = new SQLUtil("graderdata.sqlite");
-        EmailUtil emailUtil = new EmailUtil("imap.gmail.com", 993, true, "smtp.gmail.com", 587, true, "user@gmail.com", "YourPasswordOwO", 10000L)
+        SQLUtil sqlUtil = new SQLUtil(GraderInfo.GRADER_DATA_SQLITE_FILE);
+        EmailUtil emailUtil = new EmailUtil(GraderInfo.IMAP_HOSTNAME, GraderInfo.IMAP_PORT, GraderInfo.IMAP_USE_TLS,
+            GraderInfo.SMTP_HOSTNAME, GraderInfo.SMTP_PORT, GraderInfo.SMTP_USE_TLS, GraderInfo.EMAIL_LOGIN_ADDR,
+            GraderInfo.EMAIL_LOGIN_PWD, GraderInfo.EMAIL_INBOX_REFRESH_RATE)
         {
             public void onReceivedMessageCallback(UIDMessageEncapsulator uidMessageEncapsulator)
             {
