@@ -92,11 +92,6 @@ public class ProgramIOUtil
         
         switch (language)
         {
-            case C:
-            case C_PLUS_PLUS:
-                commandArgs.add(toRun.toString());
-                break;
-
             case JAVA:
                 commandArgs.add(eld.getJava());
                 commandArgs.add("-cp");
@@ -119,8 +114,11 @@ public class ProgramIOUtil
                 commandArgs.add(toRun.toString());
                 break;
                 
+            case C:
+            case C_PLUS_PLUS:
             default:
-                return new PostExecutionResults(null, null, null, 0.0, ExecutionResultStatus.SUCCESS);
+                commandArgs.add(toRun.toString());
+                break;
         }
         
         return runExecutable(null, commandArgs, null, submissionId, toRun.getParentFile(), timeoutMs);
