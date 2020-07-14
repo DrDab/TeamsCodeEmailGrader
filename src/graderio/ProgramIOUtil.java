@@ -80,6 +80,52 @@ public class ProgramIOUtil
         return runExecutable(null, commandArgs, null, submissionId, toCompile.getParentFile(), timeoutMs);
     }
 
+    public PostExecutionResults runProgram(String submissionId, File toRun, ProgrammingLanguage language,
+        long timeoutMs) throws InterruptedException
+    {
+        if (!toRun.getParentFile().exists())
+        {
+            toRun.getParentFile().mkdir();
+        }
+        
+        ArrayList<String> commandArgs = new ArrayList<String>();
+        
+        switch (language)
+        {
+            case C:
+            case C_PLUS_PLUS:
+                commandArgs.add(toRun.toString());
+                break;
+
+            case JAVA:
+                commandArgs.add(eld.getJava());
+                commandArgs.add("-cp");
+                commandArgs.add(toRun.getParent());
+                commandArgs.add(toRun.getName().replaceAll(".class", ""));
+                break;
+
+            case C_SHARP:
+                commandArgs.add(eld.getCSharpRunner());
+                commandArgs.add(toRun.toString());
+                break;
+
+            case PYTHON_2:
+                commandArgs.add(eld.getPython2());
+                commandArgs.add(toRun.toString());
+                break;
+                
+            case PYTHON_3:
+                commandArgs.add(eld.getPython3());
+                commandArgs.add(toRun.toString());
+                break;
+                
+            default:
+                return new PostExecutionResults(null, null, null, 0.0, ExecutionResultStatus.SUCCESS);
+        }
+        
+        return runExecutable(null, commandArgs, null, submissionId, toRun.getParentFile(), timeoutMs);
+    }
+
     public PostExecutionResults runExecutable(File toRun, List<String> args, String stdin, String logName,
         File logFileDirectory, long timeoutMs) throws InterruptedException
     {
