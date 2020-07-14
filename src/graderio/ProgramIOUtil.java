@@ -9,16 +9,19 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
+import emailgrader.GraderInfo;
 import graderobjects.ExecutionResultStatus;
 import graderobjects.PostExecutionResults;
 
 public class ProgramIOUtil
 {
+    private GraderInfo graderInfo;
     private ExecutableLocator eld;
-
-    public ProgramIOUtil()
+   
+    public ProgramIOUtil(GraderInfo graderInfo)
     {
-        this.eld = new ExecutableLocator();
+        this.graderInfo = graderInfo;
+        this.eld = new ExecutableLocator(graderInfo);
     }
 
     public PostExecutionResults runExecutable(File toRun, List<String> args, String stdin, String logName,

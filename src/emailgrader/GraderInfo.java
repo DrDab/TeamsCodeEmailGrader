@@ -25,4 +25,12 @@ public class GraderInfo
     // SubmissionProcessor settings.
     //
     public static final long PROCESSOR_QUERY_RATE       = 1000L; // query rate for submission processor to check queued submissions, milliseconds
+    public static final String JAVA_LOCATION            = "/usr/bin/java";
+    public static final String JAVAC_LOCATION           = "/usr/bin/javac";
+    public static final String GCC_LOCATION             = "/usr/bin/gcc";
+    public static final String GPP_LOCATION             = "/usr/bin/g++";
+    public static final String PYTHON2_LOCATION         = "/usr/bin/python2";
+    public static final String PYTHON3_LOCATION         = "/usr/bin/python3";
+    public static final String CSHARP_BUILD_LOCATION    = "/usr/bin/mcs";
+    public static final String CSHARP_RUN_LOCATION      = "/usr/bin/mono";
 }
