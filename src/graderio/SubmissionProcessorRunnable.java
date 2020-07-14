@@ -9,12 +9,14 @@ public class SubmissionProcessorRunnable implements Runnable
 {
     private SubmissionProcessor submissionProcessor;
     private SQLUtil sqlUtil;
+    private EmailUtil emailUtil;
     private boolean finished;
     
-    public SubmissionProcessorRunnable(SubmissionProcessor submissionProcessor, SQLUtil sqlUtil)
+    public SubmissionProcessorRunnable(SubmissionProcessor submissionProcessor, SQLUtil sqlUtil, EmailUtil emailUtil)
     {
         this.submissionProcessor = submissionProcessor;
         this.sqlUtil = sqlUtil;
+        this.emailUtil = emailUtil;
         this.finished = false;
     }
 
@@ -28,11 +30,10 @@ public class SubmissionProcessorRunnable implements Runnable
                 while (sqlUtil.hasPendingSubmission())
                 {
                     ContestSubmission cur = sqlUtil.getNextPendingSubmission();
-                    // validate the submission. check the header. (does the team match up? does the division match up? are all fields included?)
-                    // if validated, go on.
-                    // if not validated, update the state of the submission to PROCESSED_REJECTED, and update miscellaneous information as to why. continue.
-                    // after validating submission, grade the submission.
-                    // after grading, update the state of the submission to PROCESSED_GRADED and onto the next submission we go
+                    // only thing we read from header is language and problem number.
+                    // we will read the division and team name from x-referencing the sender email.
+                    String subject = cur.subject;
+                    String sender = cur.senderEmail;
                     
                 }
             }
