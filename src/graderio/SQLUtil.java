@@ -21,43 +21,40 @@ public class SQLUtil
 
     public SQLUtil(String filePath) throws SQLException
     {
-        boolean needReinit = false;
-        if (sqlConnection == null)
+        try
         {
-            needReinit = true;
+            Class.forName("org.sqlite.JDBC");
         }
-        else
+        catch (ClassNotFoundException cnfe)
         {
-            if (sqlConnection.isClosed())
-            {
-                needReinit = true;
-            }
+            cnfe.printStackTrace();
         }
-        if (needReinit)
-        {
-            try
-            {
-                Class.forName("org.sqlite.JDBC");
-            }
-            catch (ClassNotFoundException cnfe)
-            {
-                cnfe.printStackTrace();
-            }
 
-            sqlConnection = DriverManager.getConnection("jdbc:sqlite:" + filePath);
-        }
+        this.sqlConnection = DriverManager.getConnection("jdbc:sqlite:" + filePath);
         initTables();
+    }
+
+    public boolean tableExists(String table) throws SQLException
+    {
+        DatabaseMetaData dbm = this.sqlConnection.getMetaData();
+        ResultSet tables = dbm.getTables(null, null, table, null);
+        return tables.next();
     }
 
     public void initTables() throws SQLException
     {
-        DatabaseMetaData dbm = this.sqlConnection.getMetaData();
-        ResultSet tables = dbm.getTables(null, null, "submissionsDb", null);
-        if (!tables.next())
+        if (!this.tableExists("submissionsDb"))
         {
             String query = "CREATE TABLE submissionsDb(id INT, uid INT, senderEmail TEXT, submissionDate INT, "
                 + "subject TEXT NULL, body TEXT NULL, state TEXT, contestDivision TEXT NULL, teamName TEXT NULL,"
                 + " problemDifficulty TEXT NULL, programmingLanguage TEXT NULL, miscInfo TEXT NULL);";
+            PreparedStatement stmt = sqlConnection.prepareStatement(query);
+            stmt.execute();
+        }
+        if (!this.tableExists("contestantsDb"))
+        {
+            String query = "CREATE TABLE contestantsDb(name TEXT, division TEXT, email1 TEXT NULL, email2 TEXT NULL, "
+                + "email3 TEXT NULL, email4 TEXT NULL, email5 TEXT NULL, email6 TEXT NULL);";
             PreparedStatement stmt = sqlConnection.prepareStatement(query);
             stmt.execute();
         }
