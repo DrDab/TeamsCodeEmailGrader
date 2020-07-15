@@ -18,9 +18,57 @@ public class ProgramIOUtil
 {
     private ExecutableLocator eld;
 
-    public ProgramIOUtil(GraderInfo graderInfo)
+    public ProgramIOUtil()
     {
-        this.eld = new ExecutableLocator(graderInfo);
+        this.eld = new ExecutableLocator();
+    }
+
+    public String getMainJavaClassName(String code)
+    {
+        int idx = code.indexOf("public class");
+
+        if (idx == -1)
+        {
+            return null;
+        }
+
+        int start = idx + 13;
+        int pos = start;
+
+        String className = "";
+
+        while (pos < code.length())
+        {
+            char c = code.charAt(pos);
+            
+            if (c == '{') 
+            {
+                break;
+            }
+
+            if (c == ' ' || c == 0xA || c == 0xD)
+            {
+                if (className.length() == 0)
+                {
+                    pos++;
+                    continue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            className += String.valueOf(c);
+
+            pos++;
+        }
+
+        if (className.length() == 0)
+        {
+            className = null;
+        }
+
+        return className;
     }
 
     public File getExecutableParentFolder(long submissionId)
