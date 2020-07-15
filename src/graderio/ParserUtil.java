@@ -1,5 +1,6 @@
 package graderio;
 
+import graderobjects.ProblemBundle;
 import graderobjects.ProblemDifficulty;
 import graderobjects.ProgrammingLanguage;
 
