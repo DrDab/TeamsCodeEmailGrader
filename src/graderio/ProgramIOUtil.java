@@ -22,10 +22,20 @@ public class ProgramIOUtil
     {
         this.eld = new ExecutableLocator(graderInfo);
     }
-    
+
     public File getExecutableParentFolder(long submissionId)
     {
-        return new File(GraderInfo.SUBMISSION_UPLOAD_FOLDER, submissionId+"");
+        File toReturn = new File(GraderInfo.SUBMISSION_UPLOAD_FOLDER, submissionId + "");
+        if (!toReturn.getParentFile().exists()
+            || (toReturn.getParentFile().exists() && !toReturn.getParentFile().isDirectory()))
+        {
+            toReturn.getParentFile().mkdir();
+        }
+        if (!toReturn.exists() || (!toReturn.isDirectory() && toReturn.exists()))
+        {
+            toReturn.mkdir();
+        }
+        return toReturn;
     }
 
     public PostExecutionResults compileProgram(String submissionId, File toCompile, ProgrammingLanguage language,
@@ -92,9 +102,9 @@ public class ProgramIOUtil
         {
             toRun.getParentFile().mkdir();
         }
-        
+
         ArrayList<String> commandArgs = new ArrayList<String>();
-        
+
         switch (language)
         {
             case JAVA:
@@ -113,19 +123,19 @@ public class ProgramIOUtil
                 commandArgs.add(eld.getPython2());
                 commandArgs.add(toRun.toString());
                 break;
-                
+
             case PYTHON_3:
                 commandArgs.add(eld.getPython3());
                 commandArgs.add(toRun.toString());
                 break;
-                
+
             case C:
             case C_PLUS_PLUS:
             default:
                 commandArgs.add(toRun.toString());
                 break;
         }
-        
+
         return runExecutable(null, commandArgs, null, submissionId + "_execute", toRun.getParentFile(), timeoutMs);
     }
 
