@@ -22,6 +22,11 @@ public class ProgramIOUtil
     {
         this.eld = new ExecutableLocator(graderInfo);
     }
+    
+    public File getExecutableParentFolder(long submissionId)
+    {
+        return new File(GraderInfo.SUBMISSION_UPLOAD_FOLDER, submissionId+"");
+    }
 
     public PostExecutionResults compileProgram(String submissionId, File toCompile, ProgrammingLanguage language,
         long timeoutMs) throws InterruptedException
@@ -77,7 +82,7 @@ public class ProgramIOUtil
                 return new PostExecutionResults(null, null, null, 0.0, ExecutionResultStatus.SUCCESS);
         }
 
-        return runExecutable(null, commandArgs, null, submissionId, toCompile.getParentFile(), timeoutMs);
+        return runExecutable(null, commandArgs, null, submissionId + "_compile", toCompile.getParentFile(), timeoutMs);
     }
 
     public PostExecutionResults runProgram(String submissionId, File toRun, ProgrammingLanguage language,
@@ -121,7 +126,7 @@ public class ProgramIOUtil
                 break;
         }
         
-        return runExecutable(null, commandArgs, null, submissionId, toRun.getParentFile(), timeoutMs);
+        return runExecutable(null, commandArgs, null, submissionId + "_execute", toRun.getParentFile(), timeoutMs);
     }
 
     public PostExecutionResults runExecutable(File toRun, List<String> args, String stdin, String logName,
