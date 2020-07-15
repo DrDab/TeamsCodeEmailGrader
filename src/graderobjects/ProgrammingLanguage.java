@@ -7,5 +7,6 @@ public enum ProgrammingLanguage
 	JAVA,
 	PYTHON_2,
 	PYTHON_3,
-	C_SHARP
+	C_SHARP,
+	OTHER
 }

@@ -25,6 +25,11 @@ public class ProgramIOUtil
 
     public String getMainJavaClassName(String code)
     {
+        if (code == null)
+        {
+            return null;
+        }
+        
         int idx = code.indexOf("public class");
 
         if (idx == -1)
