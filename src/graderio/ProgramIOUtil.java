@@ -23,59 +23,6 @@ public class ProgramIOUtil
         this.eld = new ExecutableLocator();
     }
 
-    public String getMainJavaClassName(String code)
-    {
-        if (code == null)
-        {
-            return null;
-        }
-        
-        int idx = code.indexOf("public class");
-
-        if (idx == -1)
-        {
-            return null;
-        }
-
-        int start = idx + 13;
-        int pos = start;
-
-        String className = "";
-
-        while (pos < code.length())
-        {
-            char c = code.charAt(pos);
-            
-            if (c == '{') 
-            {
-                break;
-            }
-
-            if (c == ' ' || c == 0xA || c == 0xD)
-            {
-                if (className.length() == 0)
-                {
-                    pos++;
-                    continue;
-                }
-                else
-                {
-                    break;
-                }
-            }
-            className += String.valueOf(c);
-
-            pos++;
-        }
-
-        if (className.length() == 0)
-        {
-            className = null;
-        }
-
-        return className;
-    }
-
     public File getExecutableParentFolder(long submissionId)
     {
         File toReturn = new File(GraderInfo.SUBMISSION_UPLOAD_FOLDER, submissionId + "");
