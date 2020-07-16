@@ -4,6 +4,7 @@ import java.sql.SQLException;
 
 import graderobjects.ContestSubmission;
 import graderobjects.ContestTeam;
+import graderobjects.ProblemBundle;
 import graderobjects.SubmissionState;
 
 @SuppressWarnings("unused")
@@ -24,6 +25,34 @@ public class SubmissionProcessorRunnable implements Runnable
         this.finished = false;
         this.queryRate = queryRate;
     }
+    
+    private boolean validateSubject(String subject)
+    {
+        if (subject == null)
+        {
+            return false;
+        }
+        subject = subject.trim();
+        if (subject.length() == 0)
+        {
+            return false;
+        }
+        return true;
+    }
+    
+    private boolean validateProblemBundle(ProblemBundle pb)
+    {
+        if (pb == null)
+        {
+            return false;
+        }
+        if (pb.problemDifficulty == null || pb.problemNumRelative == -1)
+        {
+            return false;
+        }
+        
+        return true;
+    }
 
     @Override
     public void run()
@@ -37,7 +66,7 @@ public class SubmissionProcessorRunnable implements Runnable
                 while (this.sqlUtil.hasPendingSubmission())
                 {
                     ContestSubmission cur = sqlUtil.getNextPendingSubmission();
-                    System.out.println("checking pending sub " + cur.uid);
+                    //System.out.println("checking pending sub " + cur.uid);
                     // only thing we read from header is language and problem
                     // number.
                     // we will read the division and team name from
@@ -55,9 +84,32 @@ public class SubmissionProcessorRunnable implements Runnable
                         continue;
                     }
 
-                    // read the programming language and difficulty.
-                    // String[] subjectSplit = cur.subject.split(",");
-
+                    String subject = cur.subject;
+                    
+                    if (!validateSubject(subject))
+                    {
+                        cur.state = SubmissionState.PROCESSED_REJECTED;
+                        cur.miscInfo = "SUBJECT MISSING";
+                        // TODO: add reply that the subject is missing.
+                        
+                        this.sqlUtil.updateSubmissionStatus(cur);
+                        continue;
+                    }
+                    
+                    String[] subjectSplit = subject.split(",");
+                    ProblemBundle pb = ParserUtil.getProblemBundle(subjectSplit);
+                    
+                    if (!validateProblemBundle(pb))
+                    {
+                        cur.state = SubmissionState.PROCESSED_REJECTED;
+                        cur.miscInfo = "SUBJECT FORMAT INCORRECT";
+                        // TODO: add reply that the subject is incorrectly formatted.
+                        
+                        this.sqlUtil.updateSubmissionStatus(cur);
+                        continue;
+                    }
+                    
+                    
                 }
                 Thread.sleep(this.queryRate);
             }

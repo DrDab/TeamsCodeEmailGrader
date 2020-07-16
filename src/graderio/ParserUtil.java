@@ -134,15 +134,15 @@ public class ParserUtil
         ProblemDifficulty difficulty = null;
         int relNum = -1;
 
-        if (toCheck.contains("eas"))
+        if (toCheck.contains("easy"))
         {
             difficulty = ProblemDifficulty.EASY;
         }
-        else if (toCheck.contains("m"))
+        else if (toCheck.contains("medium"))
         {
             difficulty = ProblemDifficulty.MEDIUM;
         }
-        else if (toCheck.contains("h"))
+        else if (toCheck.contains("hard"))
         {
             difficulty = ProblemDifficulty.HARD;
         }

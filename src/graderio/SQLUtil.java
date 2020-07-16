@@ -11,6 +11,7 @@ import java.util.ArrayList;
 
 import emailgrader.GraderInfo;
 import graderobjects.ContestDivision;
+import graderobjects.ContestProblem;
 import graderobjects.ContestSubmission;
 import graderobjects.ContestTeam;
 import graderobjects.ProblemDifficulty;
@@ -60,6 +61,45 @@ public class SQLUtil
             PreparedStatement stmt = sqlConnection.prepareStatement(query);
             stmt.execute();
         }
+        if (!this.tableExists("problemsDb"))
+        {
+            String query = "CREATE TABLE problemsDb(name TEXT, i1 TEXT, i2 TEXT NULL, i3 TEXT NULL, o1 TEXT, o2 TEXT NULL, o3 TEXT NULL, intermediateId INT, advancedId INT)";
+            PreparedStatement stmt = sqlConnection.prepareStatement(query);
+            stmt.execute();
+        }
+    }
+
+    private ContestProblem getProblemFromResultSet(ResultSet rs) throws SQLException
+    {
+        if (rs == null)
+        {
+            return null;
+        }
+        if (!rs.next())
+        {
+            return null;
+        }
+        return new ContestProblem(rs.getString("name"), rs.getString("i1"), rs.getString("i2"), rs.getString("i3"),
+            rs.getString("o1"), rs.getString("o2"), rs.getString("o3"));
+    }
+
+    public ContestProblem getProblemById(int absoluteId, ContestDivision division) throws SQLException
+    {
+        String query = "SELECT * FROM problemsDb WHERE ? = ?";
+        PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
+        stmt.setString(1, division == ContestDivision.INTERMEDIATE ? "intermediateID" : "advancedID");
+        stmt.setInt(2, absoluteId);
+        ResultSet rs = stmt.executeQuery();
+        return getProblemFromResultSet(rs);
+    }
+
+    public ContestProblem getProblemByName(String name) throws SQLException
+    {
+        String query = "SELECT * FROM problemsDb WHERE name = ?";
+        PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
+        stmt.setString(1, name);
+        ResultSet rs = stmt.executeQuery();
+        return getProblemFromResultSet(rs);
     }
 
     private ContestTeam getTeamFromResultSet(ResultSet rs) throws SQLException
@@ -109,7 +149,7 @@ public class SQLUtil
         ResultSet rs = stmt.executeQuery();
         return getTeamFromResultSet(rs);
     }
-    
+
     public ContestTeam getTeamByName(String name) throws SQLException
     {
         String query = "SELECT * FROM contestantsDb WHERE name = ?";
