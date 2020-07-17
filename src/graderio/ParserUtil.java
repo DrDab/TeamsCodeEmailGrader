@@ -59,7 +59,7 @@ public class ParserUtil
         return className;
     }
     
-    private static ProgrammingLanguage getProgrammingLanguage(String[] subjectCommaSplit)
+    public static ProgrammingLanguage getProgrammingLanguage(String[] subjectCommaSplit)
     {
         if (subjectCommaSplit == null)
         {

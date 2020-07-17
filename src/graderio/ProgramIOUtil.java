@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import emailgrader.GraderInfo;
@@ -46,29 +47,34 @@ public class ProgramIOUtil
             toCompile.getParentFile().mkdir();
         }
         ArrayList<String> commandArgs = new ArrayList<String>();
+        HashMap<String, String> miscInfo = new HashMap<>();
+        String compiledFileName = null;
 
         switch (language)
         {
             case C:
+                compiledFileName = toCompile.getParent() + "/toExecute";
                 commandArgs.add(eld.getGCC());
                 commandArgs.add(toCompile.getAbsolutePath());
                 commandArgs.add("-lm");
                 commandArgs.add("-O2");
                 commandArgs.add("-o");
-                commandArgs.add(toCompile.getParent() + "/toExecute");
+                commandArgs.add(compiledFileName);
                 break;
 
             case C_PLUS_PLUS:
+                compiledFileName = toCompile.getParent() + "/toExecute";
                 commandArgs.add(eld.getGPP());
                 commandArgs.add(toCompile.getAbsolutePath());
                 commandArgs.add("--std=c++11");
                 commandArgs.add("-lm");
                 commandArgs.add("-O2");
                 commandArgs.add("-o");
-                commandArgs.add(toCompile.getParent() + "/toExecute");
+                commandArgs.add(compiledFileName);
                 break;
 
             case JAVA:
+                compiledFileName = toCompile.getName().replace(".java", "");
                 commandArgs.add(eld.getJavac());
                 commandArgs.add("-source");
                 commandArgs.add("1.8");
@@ -80,6 +86,7 @@ public class ProgramIOUtil
                 break;
 
             case C_SHARP:
+                compiledFileName = "toExecute.exe";
                 commandArgs.add(eld.getMCS());
                 commandArgs.add("-out:toExecute.exe");
                 commandArgs.add("-pkg:dotnet");
@@ -88,14 +95,16 @@ public class ProgramIOUtil
 
             case PYTHON_2:
             case PYTHON_3:
+                compiledFileName = toCompile.getName();
             default:
                 return new PostExecutionResults(null, null, null, 0.0, ExecutionResultStatus.SUCCESS);
         }
-
-        return runExecutable(null, commandArgs, null, submissionId + "_compile", toCompile.getParentFile(), timeoutMs);
+        PostExecutionResults toReturn = runExecutable(null, commandArgs, null, submissionId + "_compile", toCompile.getParentFile(), timeoutMs);
+        toReturn.miscInfo.put("compiledFileName", compiledFileName);
+        return toReturn;
     }
 
-    public PostExecutionResults runProgram(String submissionId, File toRun, ProgrammingLanguage language,
+    public PostExecutionResults runProgram(String submissionId, File toRun, String stdin, ProgrammingLanguage language,
         long timeoutMs) throws InterruptedException
     {
         if (!toRun.getParentFile().exists())
@@ -136,7 +145,7 @@ public class ProgramIOUtil
                 break;
         }
 
-        return runExecutable(null, commandArgs, null, submissionId + "_execute", toRun.getParentFile(), timeoutMs);
+        return runExecutable(null, commandArgs, stdin, submissionId + "_execute", toRun.getParentFile(), timeoutMs);
     }
 
     public PostExecutionResults runExecutable(File toRun, List<String> args, String stdin, String logName,

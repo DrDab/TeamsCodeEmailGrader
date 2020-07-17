@@ -7,6 +7,7 @@ import javax.mail.Message;
 import javax.mail.MessagingException;
 
 import graderio.EmailUtil;
+import graderio.ProgramIOUtil;
 import graderio.SQLUtil;
 import graderio.SubmissionProcessor;
 import graderobjects.UIDMessageEncapsulator;
@@ -38,7 +39,8 @@ public class GraderMain
                 }
             }
         };
-        SubmissionProcessor submissionProcessor = new SubmissionProcessor(sqlUtil, emailUtil, GraderInfo.PROCESSOR_QUERY_RATE);
+        ProgramIOUtil programIOUtil = new ProgramIOUtil();
+        SubmissionProcessor submissionProcessor = new SubmissionProcessor(sqlUtil, emailUtil, programIOUtil, GraderInfo.PROCESSOR_QUERY_RATE);
         submissionProcessor.startProcessor();
         emailUtil.startQueryTask();
     }
