@@ -85,10 +85,10 @@ public class SQLUtil
 
     public ContestProblem getProblemById(int absoluteId, ContestDivision division) throws SQLException
     {
-        String query = "SELECT * FROM problemsDb WHERE ? = ?";
+        String query = String.format("SELECT * FROM problemsDb WHERE %s = ?",
+            division == ContestDivision.INTERMEDIATE ? "intermediateId" : "advancedId");
         PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
-        stmt.setString(1, division == ContestDivision.INTERMEDIATE ? "intermediateID" : "advancedID");
-        stmt.setInt(2, absoluteId);
+        stmt.setInt(1, absoluteId);
         ResultSet rs = stmt.executeQuery();
         return getProblemFromResultSet(rs);
     }

@@ -18,6 +18,10 @@ public class ContestProblem
         int half = inputOutputArr.length / 2;
         for (int i = 0; i < inputOutputArr.length; i++)
         {
+            if (inputOutputArr[i] == null)
+            {
+                continue;
+            }
             if (i < half)
             {
                 inputFiles.add(inputOutputArr[i]);
@@ -28,7 +32,7 @@ public class ContestProblem
             }
         }
 
-        for (int i = 0; i < half; i++)
+        for (int i = 0; i < inputFiles.size(); i++)
         {
             String[] toAdd = new String[] { inputFiles.get(i), outputFiles.get(i) };
             this.inputOutputArgs.add(toAdd);

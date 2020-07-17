@@ -11,6 +11,7 @@ import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.Transport;
@@ -38,7 +39,6 @@ public abstract class EmailUtil
     private Properties properties;
     private Session emailSession;
     private Transport smtpTransport;
-    private Store store;
 
     private Timer queryTimer;
     private TimerTask queryTask;
@@ -68,8 +68,6 @@ public abstract class EmailUtil
         this.emailSession = Session.getDefaultInstance(this.properties);
         this.smtpTransport = this.emailSession.getTransport("smtp");
         this.smtpTransport.connect(this.username, this.password);
-        this.store = emailSession.getStore("imaps");
-        this.store.connect(this.imapHost, this.imapPort, this.username, this.password);
     }
     
     private void initQueryTask()
@@ -81,11 +79,13 @@ public abstract class EmailUtil
                 try
                 {
                     //System.out.println("Began query");
-                    UIDMessageEncapsulator[] messageEncapsulators = fetchInboxMessages(false);
+                    Store store = getStore();
+                    UIDMessageEncapsulator[] messageEncapsulators = fetchInboxMessages(false, store);
                     for (UIDMessageEncapsulator m : messageEncapsulators)
                     {
                         onReceivedMessageCallback(m);
                     }
+                    store.close();
                     //System.out.println("End query");
                 }
                 catch (Exception e)
@@ -127,19 +127,27 @@ public abstract class EmailUtil
         replyMessage.setReplyTo(message.getReplyTo());
         this.smtpTransport.sendMessage(replyMessage, replyMessage.getAllRecipients());
     }
-
-    public Message getMessageByUid(long uid) throws MessagingException
+    
+    public Store getStore() throws MessagingException
     {
-        Folder emailFolder = this.store.getFolder("INBOX");
-        emailFolder.open(Folder.READ_WRITE);
-        UIDFolder uidFolder = (UIDFolder) emailFolder;
-        return uidFolder.getMessageByUID(uid);
+        Store store = emailSession.getStore("imaps");
+        store.connect(this.imapHost, this.imapPort, this.username, this.password);
+        return store;
     }
 
-    public UIDMessageEncapsulator[] fetchInboxMessages(boolean read) throws MessagingException
+    public Message getMessageByUid(long uid, Store store) throws MessagingException
+    {
+        Folder emailFolder = store.getFolder("INBOX");
+        emailFolder.open(Folder.READ_WRITE);
+        UIDFolder uidFolder = (UIDFolder) emailFolder;
+        Message toReturn = uidFolder.getMessageByUID(uid);
+        return toReturn;
+    }
+
+    public UIDMessageEncapsulator[] fetchInboxMessages(boolean read, Store store) throws MessagingException
     {
         // search for all "unseen" messages
-        Folder emailFolder = this.store.getFolder("INBOX");
+        Folder emailFolder = store.getFolder("INBOX");
         UIDFolder uidFolder = (UIDFolder) emailFolder;
         emailFolder.open(Folder.READ_WRITE);
         Flags seen = new Flags(Flags.Flag.SEEN);

@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.sql.SQLException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
 
 import emailgrader.GraderInfo;
 import graderobjects.ContestProblem;
@@ -108,8 +113,11 @@ public class SubmissionProcessorRunnable implements Runnable
                     // we will read the division and team name from
                     // x-referencing the sender email.
 
-                    String sender = cur.senderEmail;
-                    ContestTeam senderTeam = this.sqlUtil.getTeamFromEmail(sender);
+                    String senderEmailStr = cur.senderEmail;
+                    InternetAddress address = new InternetAddress(senderEmailStr);
+                    String senderEmail = address.getAddress();
+                    
+                    ContestTeam senderTeam = this.sqlUtil.getTeamFromEmail(senderEmail);
                     if (senderTeam == null)
                     {
                         setSubmissionInvalid(cur, "INVALID_EMAIL_ACCESS_DENIED");
@@ -118,6 +126,9 @@ public class SubmissionProcessorRunnable implements Runnable
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
+                    
+                    cur.teamName = senderTeam.teamName;
+                    cur.contestDivision = senderTeam.contestDivision;
 
                     String subject = cur.subject;
 
@@ -143,6 +154,9 @@ public class SubmissionProcessorRunnable implements Runnable
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
+                    
+                    cur.programmingLanguage = programmingLanguage;
+                    cur.problemDifficulty = pb.problemDifficulty;
 
                     if (programmingLanguage == ProgrammingLanguage.OTHER)
                     {
@@ -153,6 +167,7 @@ public class SubmissionProcessorRunnable implements Runnable
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
+                    
 
                     ContestProblem problem = this.sqlUtil.getProblemById(pb.getAbsoluteId(),
                         senderTeam.contestDivision);
@@ -235,9 +250,12 @@ public class SubmissionProcessorRunnable implements Runnable
                     compiledFileName = compileResults.miscInfo.get("compiledFileName");
                     File compiledFile = new File(submissionDir, compiledFileName);
 
+                    System.out.printf("Running submission %d, l=%s, pid=%s, team=%s\n", cur.id, programmingLanguage, problem.name, cur.teamName);
+                    
                     int score = 0;
                     for (int i = 0; i < problem.inputOutputArgs.size(); i++)
                     {
+                        System.out.printf("Test %d\n", i);
                         String[] ioSet = problem.inputOutputArgs.get(i);
                         String inputFileName = ioSet[0];
                         String outputFileName = ioSet[1];
@@ -250,6 +268,7 @@ public class SubmissionProcessorRunnable implements Runnable
                         PostExecutionResults testCaseResults = this.runTestCase(i, submissionName, compiledFile, stdInString, programmingLanguage, GraderInfo.EXECUTE_TIME_LIMIT);
                         String progStdOut = trimRight(testCaseResults.getStdOut());
                         String progStdErr = trimRight(testCaseResults.getStdErr());
+                        System.out.printf("StdOut for %d: \"%s\"\n", i, progStdOut);
                         if (progStdOut.equals(stdOutString))
                         {
                             score++;
@@ -261,13 +280,17 @@ public class SubmissionProcessorRunnable implements Runnable
                         }
                     }
                     
+                    System.out.printf("Score for %d: %d\n", cur.id, score);
+                    
                     // send email reply with score.
-
+                    cur.miscInfo = "score=" + score;
+                    cur.state = SubmissionState.PROCESSED_GRADED;
+                    this.sqlUtil.updateSubmissionStatus(cur);
                 }
                 Thread.sleep(this.queryRate);
             }
         }
-        catch (SQLException | InterruptedException | IOException e)
+        catch (SQLException | InterruptedException | IOException | AddressException e)
         {
             // TODO Auto-generated catch block
             e.printStackTrace();

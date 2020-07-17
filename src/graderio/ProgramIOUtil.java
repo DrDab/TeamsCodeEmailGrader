@@ -47,7 +47,6 @@ public class ProgramIOUtil
             toCompile.getParentFile().mkdir();
         }
         ArrayList<String> commandArgs = new ArrayList<String>();
-        HashMap<String, String> miscInfo = new HashMap<>();
         String compiledFileName = null;
 
         switch (language)
@@ -96,6 +95,10 @@ public class ProgramIOUtil
             case PYTHON_2:
             case PYTHON_3:
                 compiledFileName = toCompile.getName();
+                PostExecutionResults toReturn = new PostExecutionResults(null, null, null, 0.0, ExecutionResultStatus.SUCCESS);
+                toReturn.miscInfo.put("compiledFileName", compiledFileName);
+                return toReturn;
+                
             default:
                 return new PostExecutionResults(null, null, null, 0.0, ExecutionResultStatus.SUCCESS);
         }
