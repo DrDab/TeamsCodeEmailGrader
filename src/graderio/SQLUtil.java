@@ -8,6 +8,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import emailgrader.GraderInfo;
 import graderobjects.ContestDivision;
@@ -49,8 +53,8 @@ public class SQLUtil
         if (!this.tableExists("submissionsDb"))
         {
             String query = "CREATE TABLE submissionsDb(id INT, uid INT, senderEmail TEXT, submissionDate INT, "
-                + "subject TEXT NULL, body TEXT NULL, state TEXT, contestDivision TEXT NULL, teamName TEXT NULL,"
-                + " problemDifficulty TEXT NULL, programmingLanguage TEXT NULL, miscInfo TEXT NULL);";
+                + "subject TEXT NULL, body TEXT NULL, attachmentData TEXT NULL, state TEXT, contestDivision TEXT NULL, teamName TEXT NULL,"
+                + " problemDifficulty TEXT NULL, problemNumberAbsolute INT NULL, programmingLanguage TEXT NULL, miscInfo TEXT NULL);";
             PreparedStatement stmt = sqlConnection.prepareStatement(query);
             stmt.execute();
         }
@@ -173,13 +177,13 @@ public class SQLUtil
         return (id < GraderInfo.START_SUBMISSION_ID) ? GraderInfo.START_SUBMISSION_ID : id + 1;
     }
 
-    public ContestSubmission addSubmissionToQueue(long uid, String senderEmail, long date, String subject, String body)
-        throws SQLException
+    public ContestSubmission addSubmissionToQueue(long uid, String senderEmail, long date, String subject, String body,
+        HashMap<String, Byte[]> attachmentData) throws SQLException
     {
         synchronized (this.sqlConnection)
         {
             long id = this.getNextSubmissionId();
-            ContestSubmission toAdd = new ContestSubmission(id, uid, senderEmail, date, subject, body,
+            ContestSubmission toAdd = new ContestSubmission(id, uid, senderEmail, date, subject, body, attachmentData,
                 SubmissionState.AWAITING_PROCESSING);
             insertSubmission(toAdd);
             return toAdd;
@@ -198,10 +202,22 @@ public class SQLUtil
         }
     }
 
+    private void setStatementIntNullPossible(PreparedStatement stmt, int index, Integer field) throws SQLException
+    {
+        if (field == null)
+        {
+            stmt.setNull(index, Types.INTEGER);
+        }
+        else
+        {
+            stmt.setInt(index, field);
+        }
+    }
+
     private void insertSubmission(ContestSubmission submission) throws SQLException
     {
         String statement = "INSERT INTO submissionsDb(id, uid, senderEmail, submissionDate, subject, body, state, "
-            + "contestDivision, teamName, problemDifficulty, programmingLanguage, miscInfo) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+            + "contestDivision, teamName, problemDifficulty, programmingLanguage, miscInfo, problemIdAbsolute, attachmentData) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
         PreparedStatement stmt = this.sqlConnection.prepareStatement(statement);
         stmt.setLong(1, submission.id);
         stmt.setLong(2, submission.uid);
@@ -215,6 +231,8 @@ public class SQLUtil
         setStatementStringNullPossible(stmt, 10, submission.problemDifficulty);
         setStatementStringNullPossible(stmt, 11, submission.programmingLanguage);
         setStatementStringNullPossible(stmt, 12, submission.miscInfo);
+        setStatementIntNullPossible(stmt, 13, submission.problemIdAbsolute);
+        setStatementStringNullPossible(stmt, 14, submission.attachmentDataToJSONObject());
         stmt.execute();
     }
 
@@ -224,7 +242,8 @@ public class SQLUtil
     {
         synchronized (this.sqlConnection)
         {
-            String statement = "UPDATE submissionsDb SET state = ?, contestDivision = ?, teamName = ?, problemDifficulty = ?, programmingLanguage = ?, miscInfo = ? WHERE id = ?";
+            String statement = "UPDATE submissionsDb SET state = ?, contestDivision = ?, teamName = ?, problemDifficulty = ?, "
+                + "programmingLanguage = ?, miscInfo = ?, problemIdAbsolute = ?, attachmentData = ? WHERE id = ?";
             PreparedStatement stmt = this.sqlConnection.prepareStatement(statement);
             stmt.setString(1, submission.state.toString());
             setStatementStringNullPossible(stmt, 2, submission.contestDivision);
@@ -232,7 +251,9 @@ public class SQLUtil
             setStatementStringNullPossible(stmt, 4, submission.problemDifficulty);
             setStatementStringNullPossible(stmt, 5, submission.programmingLanguage);
             setStatementStringNullPossible(stmt, 6, submission.miscInfo);
-            stmt.setLong(7, submission.id);
+            setStatementIntNullPossible(stmt, 7, submission.problemIdAbsolute);
+            setStatementStringNullPossible(stmt, 8, submission.attachmentDataToJSONObject());
+            stmt.setLong(9, submission.id);
             stmt.execute();
         }
     }
@@ -247,14 +268,43 @@ public class SQLUtil
         {
             return null;
         }
+        HashMap<String, Byte[]> attachmentData = null;
+        String attachmentDataJsonString = rs.getString("attachmentData");
+
+        if (attachmentDataJsonString != null)
+        {
+            JSONObject attachmentDataObj = new JSONObject(attachmentData);
+            if (attachmentDataObj.length() > 0)
+            {
+                if (attachmentDataObj.has("data"))
+                {
+                    attachmentData = new HashMap<>();
+                    JSONArray attachmentDataJSONArray = attachmentDataObj.getJSONArray("data");
+                    for (int i = 0; i < attachmentDataJSONArray.length(); i++)
+                    {
+                        JSONArray subFileArray = attachmentDataJSONArray.getJSONArray(i);
+                        String filename = subFileArray.getString(0);
+                        JSONArray fileByteJsonArray = subFileArray.getJSONArray(1);
+                        Byte[] byteArray = new Byte[fileByteJsonArray.length()];
+                        for (int bi = 0; bi < byteArray.length; bi++)
+                        {
+                            byte owo = (byte) fileByteJsonArray.getInt(bi);
+                            byteArray[bi] = owo;
+                        }
+                        attachmentData.put(filename, byteArray);
+                    }
+                }
+            }
+        }
+
         return new ContestSubmission(rs.getLong("id"), rs.getLong("uid"), rs.getString("senderEmail"),
-            rs.getLong("submissionDate"), rs.getString("subject"), rs.getString("body"),
+            rs.getLong("submissionDate"), rs.getString("subject"), rs.getString("body"), attachmentData,
             rs.getString("state") == null ? null : SubmissionState.valueOf(rs.getString("state")),
             rs.getString("contestDivision") == null ? null : ContestDivision.valueOf(rs.getString("contestDivision")),
             rs.getString("teamName"),
             rs.getString("problemDifficulty") == null ? null
                 : ProblemDifficulty.valueOf(rs.getString("problemDifficulty")),
-            rs.getString("programmingLanguage") == null ? null
+            rs.getInt("problemIdAbsolute"), rs.getString("programmingLanguage") == null ? null
                 : ProgrammingLanguage.valueOf(rs.getString("programmingLanguage")),
             rs.getString("miscInfo"));
     }

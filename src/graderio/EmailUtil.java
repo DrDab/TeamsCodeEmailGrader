@@ -1,7 +1,9 @@
 package graderio;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -11,17 +13,20 @@ import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.NoSuchProviderException;
+import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.Store;
 import javax.mail.Transport;
 import javax.mail.UIDFolder;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.search.FlagTerm;
 
+import emailgrader.GraderInfo;
 import graderobjects.UIDMessageEncapsulator;
 
 public abstract class EmailUtil
@@ -69,7 +74,7 @@ public abstract class EmailUtil
         this.smtpTransport = this.emailSession.getTransport("smtp");
         this.smtpTransport.connect(this.username, this.password);
     }
-    
+
     private void initQueryTask()
     {
         this.queryTask = new TimerTask()
@@ -78,7 +83,7 @@ public abstract class EmailUtil
             {
                 try
                 {
-                    //System.out.println("Began query");
+                    // System.out.println("Began query");
                     Store store = getStore();
                     UIDMessageEncapsulator[] messageEncapsulators = fetchInboxMessages(false, store);
                     for (UIDMessageEncapsulator m : messageEncapsulators)
@@ -86,7 +91,7 @@ public abstract class EmailUtil
                         onReceivedMessageCallback(m);
                     }
                     store.close();
-                    //System.out.println("End query");
+                    // System.out.println("End query");
                 }
                 catch (Exception e)
                 {
@@ -127,7 +132,7 @@ public abstract class EmailUtil
         replyMessage.setReplyTo(message.getReplyTo());
         this.smtpTransport.sendMessage(replyMessage, replyMessage.getAllRecipients());
     }
-    
+
     public Store getStore() throws MessagingException
     {
         Store store = emailSession.getStore("imaps");
@@ -178,6 +183,43 @@ public abstract class EmailUtil
             result = getTextFromMimeMultipart(mimeMultipart);
         }
         return result;
+    }
+
+    public HashMap<String, Byte[]> getAttachmentsFromMessage(Message message) throws MessagingException, IOException
+    {
+        String contentType = message.getContentType();
+
+        // store attachment file name, separated by comma
+        String attachFiles = "";
+
+        if (contentType.contains("multipart"))
+        {
+            // content may contain attachments
+            Multipart multiPart = (Multipart) message.getContent();
+            int numberOfParts = multiPart.getCount();
+            for (int partCount = 0; partCount < numberOfParts; partCount++)
+            {
+                MimeBodyPart part = (MimeBodyPart) multiPart.getBodyPart(partCount);
+                if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
+                {
+                    // this part is attachment
+                    String fileName = part.getFileName();
+                    InputStream is = part.getInputStream();
+                    int fileSize = is.available();
+                    if (fileSize > GraderInfo.MAX_ATTACHMENT_SIZE)
+                    {
+                        continue;
+                    }
+                    byte[] buf = new byte[fileSize];
+                    is.read(buf, 0, fileSize);
+                }
+            }
+
+        }
+
+        // print out details of each message
+        System.out.println("\t Attachments: " + attachFiles);
+        return null;
     }
 
     public String getTextFromMimeMultipart(MimeMultipart mimeMultipart) throws MessagingException, IOException

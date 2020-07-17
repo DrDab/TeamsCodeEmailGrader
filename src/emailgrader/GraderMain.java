@@ -2,6 +2,7 @@ package emailgrader;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -31,7 +32,8 @@ public class GraderMain
                     long dateReceived = message.getReceivedDate().getTime();
                     String subject = message.getSubject();
                     String body = this.getTextFromMessage(message);
-                    sqlUtil.addSubmissionToQueue(uid, senderEmail, dateReceived, subject, body);
+                    HashMap<String, Byte[]> attachments = this.getAttachmentsFromMessage(message);
+                    sqlUtil.addSubmissionToQueue(uid, senderEmail, dateReceived, subject, body, attachments);
                 }
                 catch (Exception e)
                 {

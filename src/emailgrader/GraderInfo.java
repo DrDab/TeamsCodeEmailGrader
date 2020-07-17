@@ -20,6 +20,7 @@ public class GraderInfo
     public static final String EMAIL_LOGIN_ADDR             = "user@gmail.com";  // TODO: change this!
     public static final String EMAIL_LOGIN_PWD              = "YourPasswordOwO"; // TODO: change this too!
     public static final long EMAIL_INBOX_REFRESH_RATE       = 10000L; // refresh rate for checking email inbox, milliseconds
+    public static final int MAX_ATTACHMENT_SIZE             = 4096; // maximum size of email attachment, bytes. (default = 4KB)
     
     //
     // SubmissionProcessor settings.
