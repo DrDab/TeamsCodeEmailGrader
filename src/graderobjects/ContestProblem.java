@@ -7,12 +7,31 @@ public class ContestProblem
     public String name;
     public ArrayList<String[]> inputOutputArgs;
 
-    public ContestProblem(String name, String i1, String i2, String i3, String o1, String o2, String o3)
+    public ContestProblem(String name, String... inputOutputArr)
     {
         this.name = name;
         this.inputOutputArgs = new ArrayList<String[]>();
-        inputOutputArgs.add(new String[] {i1, o1});
-        inputOutputArgs.add(new String[] {i2, o2});
-        inputOutputArgs.add(new String[] {i3, o3});
+
+        ArrayList<String> inputFiles = new ArrayList<String>();
+        ArrayList<String> outputFiles = new ArrayList<String>();
+
+        int half = inputOutputArr.length / 2;
+        for (int i = 0; i < inputOutputArr.length; i++)
+        {
+            if (i < half)
+            {
+                inputFiles.add(inputOutputArr[i]);
+            }
+            else
+            {
+                outputFiles.add(inputOutputArr[i]);
+            }
+        }
+
+        for (int i = 0; i < half; i++)
+        {
+            String[] toAdd = new String[] { inputFiles.get(i), outputFiles.get(i) };
+            this.inputOutputArgs.add(toAdd);
+        }
     }
 }

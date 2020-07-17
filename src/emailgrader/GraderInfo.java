@@ -27,6 +27,13 @@ public class GraderInfo
     public static final long PROCESSOR_QUERY_RATE           = 1000L; // query rate for submission processor to check queued submissions, milliseconds
     
     //
+    // SubmissionProcessorRunnable settings.
+    //
+    public static final String PROBLEM_SET_FOLDER           = "problems";
+    public static final long COMPILE_TIME_LIMIT             = 3000L;
+    public static final long EXECUTE_TIME_LIMIT             = 3000L;
+    
+    //
     // ProgramIOUtil settings.
     //
     public static final String JAVA_LOCATION                = "/usr/bin/java";

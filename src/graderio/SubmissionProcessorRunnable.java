@@ -5,8 +5,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.sql.SQLException;
 
+import emailgrader.GraderInfo;
 import graderobjects.ContestProblem;
 import graderobjects.ContestSubmission;
 import graderobjects.ContestTeam;
@@ -61,6 +63,10 @@ public class SubmissionProcessorRunnable implements Runnable
         {
             return false;
         }
+        if (pb.getAbsoluteId() < 1 || pb.getAbsoluteId() > 15)
+        {
+            return false;
+        }
 
         return true;
     }
@@ -70,11 +76,18 @@ public class SubmissionProcessorRunnable implements Runnable
         sub.state = SubmissionState.PROCESSED_REJECTED;
         sub.miscInfo = miscInfo;
     }
-    
-    private PostExecutionResults runTestCase(int testCaseNum, String submissionName, File compiledFile, String stdin, ProgrammingLanguage programmingLanguage, long timeoutMs) throws InterruptedException
+
+    private PostExecutionResults runTestCase(int testCaseNum, String submissionName, File compiledFile, String stdin,
+        ProgrammingLanguage programmingLanguage, long timeoutMs) throws InterruptedException
     {
-        PostExecutionResults runResults = this.programIOUtil.runProgram(submissionName + "_" + testCaseNum, compiledFile, stdin, programmingLanguage, timeoutMs);
+        PostExecutionResults runResults = this.programIOUtil.runProgram(submissionName + "_" + testCaseNum,
+            compiledFile, stdin, programmingLanguage, timeoutMs);
         return runResults;
+    }
+    
+    private String trimRight(String toTrim)
+    {
+        return toTrim.replaceAll("\\s+$",""); 
     }
 
     @Override
@@ -205,8 +218,8 @@ public class SubmissionProcessorRunnable implements Runnable
 
                     // now that everything is validated, compile the code and
                     // test it.
-                    PostExecutionResults compileResults = this.programIOUtil.compileProgram(submissionName,
-                        codeFile, programmingLanguage, 3000L);
+                    PostExecutionResults compileResults = this.programIOUtil.compileProgram(submissionName, codeFile,
+                        programmingLanguage, GraderInfo.COMPILE_TIME_LIMIT);
 
                     if (compileResults.getExecutionResultStatus() != ExecutionResultStatus.SUCCESS)
                     {
@@ -221,16 +234,35 @@ public class SubmissionProcessorRunnable implements Runnable
                     // if we compiled successfully, try running the program.
                     compiledFileName = compileResults.miscInfo.get("compiledFileName");
                     File compiledFile = new File(submissionDir, compiledFileName);
-                    
+
                     int score = 0;
-                    for (int i = 1; i <= 3; i++)
+                    for (int i = 0; i < problem.inputOutputArgs.size(); i++)
                     {
-                        
-                        //PostExecutionResults testCaseResults = this.runTestCase(i, submissionName, compiledFile, stdin, programmingLanguage, 3000L);
-                        // if win, score++
+                        String[] ioSet = problem.inputOutputArgs.get(i);
+                        String inputFileName = ioSet[0];
+                        String outputFileName = ioSet[1];
+                        File problemSetFolder = new File(GraderInfo.PROBLEM_SET_FOLDER, problem.name);
+                        File inputFile = new File(problemSetFolder, inputFileName);
+                        File outputFile = new File(problemSetFolder, outputFileName);
+                        // read stdin and expected stdout for files.
+                        String stdInString = trimRight(new String(Files.readAllBytes(inputFile.toPath())));
+                        String stdOutString = trimRight(new String(Files.readAllBytes(outputFile.toPath())));
+                        PostExecutionResults testCaseResults = this.runTestCase(i, submissionName, compiledFile, stdInString, programmingLanguage, GraderInfo.EXECUTE_TIME_LIMIT);
+                        String progStdOut = trimRight(testCaseResults.getStdOut());
+                        String progStdErr = trimRight(testCaseResults.getStdErr());
+                        if (progStdOut.equals(stdOutString))
+                        {
+                            score++;
+                            continue;
+                        }
+                        if (progStdErr.length() > 0)
+                        {
+                            // error case
+                        }
                     }
                     
-                    
+                    // send email reply with score.
+
                 }
                 Thread.sleep(this.queryRate);
             }
