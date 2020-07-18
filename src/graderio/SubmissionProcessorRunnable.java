@@ -151,6 +151,7 @@ public class SubmissionProcessorRunnable implements Runnable
                     
                     cur.programmingLanguage = programmingLanguage;
                     cur.problemDifficulty = pb.problemDifficulty;
+                    cur.problemIdAbsolute = pb.getAbsoluteId();
 
                     if (programmingLanguage == ProgrammingLanguage.OTHER)
                     {
@@ -179,6 +180,10 @@ public class SubmissionProcessorRunnable implements Runnable
                             boolean attachmentTargeted = false;
                             switch (programmingLanguage)
                             {
+                                case JAVA:
+                                    attachmentTargeted = key.contains(".java");
+                                    break;
+                                
                                 case C_PLUS_PLUS:
                                     attachmentTargeted = key.contains(".cpp");
                                     break;
@@ -221,6 +226,15 @@ public class SubmissionProcessorRunnable implements Runnable
                     if (programmingLanguage == ProgrammingLanguage.JAVA)
                     {
                         String className = ParserUtil.getMainJavaClassName(code);
+                        if (className == null)
+                        {
+                            setSubmissionInvalid(cur, "INVALID_JAVA_CLASS_NAME");
+                            // TODO: add reply that java class name is
+                            // unrecognized.
+
+                            this.sqlUtil.updateSubmissionStatus(cur);
+                            continue;
+                        }
                         fileName = className + ".java";
                     }
                     else

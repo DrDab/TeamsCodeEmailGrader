@@ -1,3 +1,0 @@
-owo = input()
-print(owo)
-
