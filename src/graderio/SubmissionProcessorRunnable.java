@@ -84,10 +84,10 @@ public class SubmissionProcessorRunnable implements Runnable
             compiledFile, stdin, programmingLanguage, timeoutMs);
         return runResults;
     }
-    
+
     private String trimRight(String toTrim)
     {
-        return toTrim.replaceAll("\\s+$",""); 
+        return toTrim.replaceAll("\\s+$", "");
     }
 
     @Override
@@ -110,7 +110,7 @@ public class SubmissionProcessorRunnable implements Runnable
                     String senderEmailStr = cur.senderEmail;
                     InternetAddress address = new InternetAddress(senderEmailStr);
                     String senderEmail = address.getAddress();
-                    
+
                     ContestTeam senderTeam = this.sqlUtil.getTeamFromEmail(senderEmail);
                     if (senderTeam == null)
                     {
@@ -120,7 +120,7 @@ public class SubmissionProcessorRunnable implements Runnable
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
-                    
+
                     cur.teamName = senderTeam.teamName;
                     cur.contestDivision = senderTeam.contestDivision;
 
@@ -148,10 +148,21 @@ public class SubmissionProcessorRunnable implements Runnable
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
-                    
+
                     cur.programmingLanguage = programmingLanguage;
                     cur.problemDifficulty = pb.problemDifficulty;
                     cur.problemIdAbsolute = pb.getAbsoluteId();
+
+                    if (this.sqlUtil.getSubmissionCountPerProblemPerTeam(cur.teamName,
+                        cur.problemIdAbsolute) >= GraderInfo.MAXIMUM_SUBMISSION_COUNT)
+                    {
+                        setSubmissionInvalid(cur, "SUBMISSION_COUNT_EXCEEDED");
+                        // TODO: add reply that submission limit for the problem
+                        // has been exceeded.
+
+                        this.sqlUtil.updateSubmissionStatus(cur);
+                        continue;
+                    }
 
                     if (programmingLanguage == ProgrammingLanguage.OTHER)
                     {
@@ -162,17 +173,16 @@ public class SubmissionProcessorRunnable implements Runnable
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
-                    
 
                     ContestProblem problem = this.sqlUtil.getProblemById(pb.getAbsoluteId(),
                         senderTeam.contestDivision);
-                   
+
                     File submissionDir = this.programIOUtil.getExecutableParentFolder(cur.id);
                     String code = cur.body;
                     String submissionName = "Upload_" + cur.id;
                     String fileName = null;
                     String compiledFileName = null;
-                    
+
                     if (cur.attachmentData != null)
                     {
                         for (String key : cur.attachmentData.keySet())
@@ -183,7 +193,7 @@ public class SubmissionProcessorRunnable implements Runnable
                                 case JAVA:
                                     attachmentTargeted = key.contains(".java");
                                     break;
-                                
+
                                 case C_PLUS_PLUS:
                                     attachmentTargeted = key.contains(".cpp");
                                     break;
@@ -207,11 +217,12 @@ public class SubmissionProcessorRunnable implements Runnable
                                 default:
                                     break;
                             }
-                            
+
                             if (attachmentTargeted)
                             {
                                 Byte[] codeBytes = cur.attachmentData.get(key);
-                                // turn codeBytes into a primitive, before initializing a string on it.
+                                // turn codeBytes into a primitive, before
+                                // initializing a string on it.
                                 byte[] codeBytesPrimitive = new byte[codeBytes.length];
                                 for (int i = 0; i < codeBytes.length; i++)
                                 {
@@ -304,8 +315,9 @@ public class SubmissionProcessorRunnable implements Runnable
                     compiledFileName = compileResults.miscInfo.get("compiledFileName");
                     File compiledFile = new File(submissionDir, compiledFileName);
 
-                    System.out.printf("Running submission %d, l=%s, pid=%s, team=%s\n", cur.id, programmingLanguage, problem.name, cur.teamName);
-                    
+                    System.out.printf("Running submission %d, l=%s, pid=%s, team=%s\n", cur.id, programmingLanguage,
+                        problem.name, cur.teamName);
+
                     int score = 0;
                     for (int i = 0; i < problem.inputOutputArgs.size(); i++)
                     {
@@ -319,7 +331,8 @@ public class SubmissionProcessorRunnable implements Runnable
                         // read stdin and expected stdout for files.
                         String stdInString = trimRight(new String(Files.readAllBytes(inputFile.toPath())));
                         String stdOutString = trimRight(new String(Files.readAllBytes(outputFile.toPath())));
-                        PostExecutionResults testCaseResults = this.runTestCase(i, submissionName, compiledFile, stdInString, programmingLanguage, GraderInfo.EXECUTE_TIME_LIMIT);
+                        PostExecutionResults testCaseResults = this.runTestCase(i, submissionName, compiledFile,
+                            stdInString, programmingLanguage, GraderInfo.EXECUTE_TIME_LIMIT);
                         String progStdOut = trimRight(testCaseResults.getStdOut());
                         String progStdErr = trimRight(testCaseResults.getStdErr());
                         System.out.printf("StdOut for %d: \"%s\"\n", i, progStdOut);
@@ -331,12 +344,16 @@ public class SubmissionProcessorRunnable implements Runnable
                         if (progStdErr.length() > 0)
                         {
                             // error case
+                            // TODO: set state to processed error, send email
+                            // that the program threw an error. do not elaborate
+                            // on error (for security purposes). update
+                            // submission status and continue.
                         }
                     }
-                    
+
                     System.out.printf("Score for %d: %d\n", cur.id, score);
-                    
-                    // send email reply with score.
+
+                    // TODO: send email reply with score.
                     cur.miscInfo = "score=" + score;
                     cur.state = SubmissionState.PROCESSED_GRADED;
                     this.sqlUtil.updateSubmissionStatus(cur);

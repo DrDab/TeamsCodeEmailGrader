@@ -20,19 +20,16 @@ public class GraderInfo
     public static final String EMAIL_LOGIN_ADDR             = "user@gmail.com";  // TODO: change this!
     public static final String EMAIL_LOGIN_PWD              = "YourPasswordOwO"; // TODO: change this too!
     public static final long EMAIL_INBOX_REFRESH_RATE       = 10000L; // refresh rate for checking email inbox, milliseconds
-    public static final int MAX_ATTACHMENT_SIZE             = 50000; // maximum size of email attachment, bytes. (default = 4KB)
-    
-    //
-    // SubmissionProcessor settings.
-    //
-    public static final long PROCESSOR_QUERY_RATE           = 1000L; // query rate for submission processor to check queued submissions, milliseconds
+    public static final int MAX_ATTACHMENT_SIZE             = 50000; // maximum size of email attachment, bytes. (default = 50KB)
     
     //
     // SubmissionProcessorRunnable settings.
     //
+    public static final long PROCESSOR_QUERY_RATE           = 1000L; // query rate for submission processor to check queued submissions, milliseconds
     public static final String PROBLEM_SET_FOLDER           = "problems";
     public static final long COMPILE_TIME_LIMIT             = 3000L;
     public static final long EXECUTE_TIME_LIMIT             = 3000L;
+    public static final int MAXIMUM_SUBMISSION_COUNT        = 2; // maximum submission count per problem, per team.
     
     //
     // ProgramIOUtil settings.

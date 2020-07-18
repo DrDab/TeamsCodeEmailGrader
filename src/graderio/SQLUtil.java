@@ -194,12 +194,12 @@ public class SQLUtil
     {
         if (field == null)
         {
-            //System.out.println("Field is null!");
+            // System.out.println("Field is null!");
             stmt.setNull(index, Types.VARCHAR);
         }
         else
         {
-            //System.out.println(index+")"+field.toString());
+            // System.out.println(index+")"+field.toString());
             stmt.setString(index, field.toString());
         }
     }
@@ -235,7 +235,8 @@ public class SQLUtil
         setStatementStringNullPossible(stmt, 12, submission.miscInfo);
         setStatementIntNullPossible(stmt, 13, submission.problemIdAbsolute);
         setStatementStringNullPossible(stmt, 14, submission.attachmentDataToJSONObject());
-        //System.out.println("attachmentData=" + submission.attachmentDataToJSONObject());
+        // System.out.println("attachmentData=" +
+        // submission.attachmentDataToJSONObject());
         stmt.execute();
     }
 
@@ -273,7 +274,8 @@ public class SQLUtil
         }
         HashMap<String, Byte[]> attachmentData = null;
         String attachmentDataJsonString = rs.getString("attachmentData");
-        //System.out.println("attachmentDataJsonString:" + attachmentDataJsonString);
+        // System.out.println("attachmentDataJsonString:" +
+        // attachmentDataJsonString);
 
         if (attachmentDataJsonString != null)
         {
@@ -297,7 +299,7 @@ public class SQLUtil
                 }
             }
         }
-        
+
         return new ContestSubmission(rs.getLong("id"), rs.getLong("uid"), rs.getString("senderEmail"),
             rs.getLong("submissionDate"), rs.getString("subject"), rs.getString("body"), attachmentData,
             rs.getString("state") == null ? null : SubmissionState.valueOf(rs.getString("state")),
@@ -312,11 +314,14 @@ public class SQLUtil
 
     public ContestSubmission getSubmissionById(long id) throws SQLException
     {
-        String statement = "SELECT * FROM submissionsDb WHERE id = ?";
-        PreparedStatement stmt = this.sqlConnection.prepareStatement(statement);
-        stmt.setLong(1, id);
-        ResultSet rs = stmt.executeQuery();
-        return this.getSubmissionFromResultSet(rs);
+        synchronized (this.sqlConnection)
+        {
+            String statement = "SELECT * FROM submissionsDb WHERE id = ?";
+            PreparedStatement stmt = this.sqlConnection.prepareStatement(statement);
+            stmt.setLong(1, id);
+            ResultSet rs = stmt.executeQuery();
+            return this.getSubmissionFromResultSet(rs);
+        }
     }
 
     public ContestSubmission getNextPendingSubmission() throws SQLException
@@ -328,6 +333,23 @@ public class SQLUtil
             stmt.setString(1, SubmissionState.AWAITING_PROCESSING.toString());
             ResultSet rs = stmt.executeQuery();
             return this.getSubmissionFromResultSet(rs);
+        }
+    }
+
+    public int getSubmissionCountPerProblemPerTeam(String teamName, int problemIdAbsolute) throws SQLException
+    {
+        synchronized (this.sqlConnection)
+        {
+            String query = "SELECT * FROM submissionsDb WHERE state = " + SubmissionState.PROCESSED_GRADED
+                + " AND teamName = ? AND problemIdAbsolute = ? ";
+            PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
+            ResultSet rs = stmt.executeQuery();
+            int i = 0;
+            while (rs.next())
+            {
+                i++;
+            }
+            return i;
         }
     }
 
