@@ -165,12 +165,58 @@ public class SubmissionProcessorRunnable implements Runnable
 
                     ContestProblem problem = this.sqlUtil.getProblemById(pb.getAbsoluteId(),
                         senderTeam.contestDivision);
-
+                   
                     File submissionDir = this.programIOUtil.getExecutableParentFolder(cur.id);
                     String code = cur.body;
                     String submissionName = "Upload_" + cur.id;
                     String fileName = null;
                     String compiledFileName = null;
+                    
+                    if (cur.attachmentData != null)
+                    {
+                        for (String key : cur.attachmentData.keySet())
+                        {
+                            boolean attachmentTargeted = false;
+                            switch (programmingLanguage)
+                            {
+                                case C_PLUS_PLUS:
+                                    attachmentTargeted = key.contains(".cpp");
+                                    break;
+
+                                case C:
+                                    attachmentTargeted = key.contains(".c");
+                                    break;
+
+                                case PYTHON_2:
+                                case PYTHON_3:
+                                    attachmentTargeted = key.contains(".py");
+                                    break;
+
+                                case C_SHARP:
+                                    attachmentTargeted = key.contains(".cs");
+                                    break;
+
+                                // we should never reach here anyway, but if so,
+                                // don't assign an extension.
+                                case OTHER:
+                                default:
+                                    break;
+                            }
+                            
+                            if (attachmentTargeted)
+                            {
+                                Byte[] codeBytes = cur.attachmentData.get(key);
+                                // turn codeBytes into a primitive, before initializing a string on it.
+                                byte[] codeBytesPrimitive = new byte[codeBytes.length];
+                                for (int i = 0; i < codeBytes.length; i++)
+                                {
+                                    codeBytesPrimitive[i] = (byte) codeBytes[i];
+                                }
+                                code = new String(codeBytesPrimitive);
+                                break;
+                            }
+                        }
+                    }
 
                     if (programmingLanguage == ProgrammingLanguage.JAVA)
                     {
