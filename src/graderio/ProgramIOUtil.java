@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import emailgrader.GraderInfo;
@@ -47,6 +46,7 @@ public class ProgramIOUtil
             toCompile.getParentFile().mkdir();
         }
         ArrayList<String> commandArgs = new ArrayList<String>();
+        commandArgs.add(String.format("ulimit -v %d && ", GraderInfo.COMPILE_MEM_LIMIT));
         String compiledFileName = null;
 
         switch (language)
@@ -116,6 +116,7 @@ public class ProgramIOUtil
         }
 
         ArrayList<String> commandArgs = new ArrayList<String>();
+        commandArgs.add(String.format("ulimit -v %d && ", GraderInfo.EXECUTE_MEM_LIMIT));
 
         switch (language)
         {
