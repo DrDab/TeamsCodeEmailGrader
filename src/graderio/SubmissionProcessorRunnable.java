@@ -3,14 +3,9 @@ package graderio;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-import java.sql.SQLException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import emailgrader.GraderInfo;
@@ -98,10 +93,9 @@ public class SubmissionProcessorRunnable implements Runnable
     @Override
     public void run()
     {
-        try
+        while (!this.submissionProcessor.isStopped())
         {
-            // System.out.println("Run block triggered");
-            while (!this.submissionProcessor.isStopped())
+            try
             {
                 // System.out.println("looping");
                 while (this.sqlUtil.hasPendingSubmission())
@@ -289,11 +283,10 @@ public class SubmissionProcessorRunnable implements Runnable
                 }
                 Thread.sleep(this.queryRate);
             }
-        }
-        catch (SQLException | InterruptedException | IOException | AddressException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
         }
         // System.out.println("finished");
         this.finished = true;
