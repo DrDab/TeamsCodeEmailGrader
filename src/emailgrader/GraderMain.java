@@ -42,7 +42,8 @@ public class GraderMain
             }
         };
         ProgramIOUtil programIOUtil = new ProgramIOUtil();
-        SubmissionProcessor submissionProcessor = new SubmissionProcessor(sqlUtil, emailUtil, programIOUtil, GraderInfo.PROCESSOR_QUERY_RATE);
+        SubmissionProcessor submissionProcessor = new SubmissionProcessor(sqlUtil, emailUtil, programIOUtil,
+            GraderInfo.PROCESSOR_QUERY_RATE);
         submissionProcessor.startProcessor();
         emailUtil.startQueryTask();
     }

@@ -2,6 +2,7 @@ package graderio;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Properties;
@@ -195,6 +196,7 @@ public abstract class EmailUtil
         if (contentType.contains("multipart"))
         {
             // content may contain attachments
+            HashMap<String, Byte[]> toReturn = new HashMap<>();
             Multipart multiPart = (Multipart) message.getContent();
             int numberOfParts = multiPart.getCount();
             for (int partCount = 0; partCount < numberOfParts; partCount++)
@@ -202,24 +204,45 @@ public abstract class EmailUtil
                 MimeBodyPart part = (MimeBodyPart) multiPart.getBodyPart(partCount);
                 if (Part.ATTACHMENT.equalsIgnoreCase(part.getDisposition()))
                 {
-                    // this part is attachment
                     String fileName = part.getFileName();
                     InputStream is = part.getInputStream();
-                    int fileSize = is.available();
-                    if (fileSize > GraderInfo.MAX_ATTACHMENT_SIZE)
+                    ArrayList<Byte> byteArrayList = new ArrayList<Byte>();
+                    int idx = 0;
+                    boolean recvSuccess = false;
+
+                    while (idx < GraderInfo.MAX_ATTACHMENT_SIZE)
+                    {
+                        Byte owo = (byte) is.read();
+                        if (owo == -1)
+                        {
+                            recvSuccess = true;
+                            break;
+                        }
+                        byteArrayList.add(owo);
+                        idx += 1;
+                    }
+
+                    // System.out.println(Arrays.toString(buf));
+                    if (!recvSuccess)
                     {
                         continue;
                     }
-                    byte[] buf = new byte[fileSize];
-                    is.read(buf, 0, fileSize);
+
+                    Byte[] buf = new Byte[byteArrayList.size()];
+                    for (int i = 0; i < buf.length; i++)
+                    {
+                        buf[i] = byteArrayList.get(i);
+                    }
+
+                    toReturn.put(fileName, buf);
                 }
             }
-
+            return toReturn;
         }
-
-        // print out details of each message
-        System.out.println("\t Attachments: " + attachFiles);
-        return null;
+        else
+        {
+            return null;
+        }
     }
 
     public String getTextFromMimeMultipart(MimeMultipart mimeMultipart) throws MessagingException, IOException

@@ -24,7 +24,8 @@ public class ContestSubmission
 
     public ContestSubmission(long id, long uid, String senderEmail, long date, String subject, String body,
         HashMap<String, Byte[]> attachmentData, SubmissionState state, ContestDivision contestDivision, String teamName,
-        ProblemDifficulty problemDifficulty, Integer problemIdAbsolute, ProgrammingLanguage programmingLanguage, String miscInfo)
+        ProblemDifficulty problemDifficulty, Integer problemIdAbsolute, ProgrammingLanguage programmingLanguage,
+        String miscInfo)
     {
         this.id = id;
         this.uid = uid;
@@ -47,7 +48,7 @@ public class ContestSubmission
     {
         this(id, uid, senderEmail, date, subject, body, attachmentData, state, null, null, null, null, null, null);
     }
-    
+
     public JSONObject attachmentDataToJSONObject()
     {
         if (this.attachmentData == null)
