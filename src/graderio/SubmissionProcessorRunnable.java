@@ -154,7 +154,8 @@ public class SubmissionProcessorRunnable implements Runnable
                     cur.problemIdAbsolute = pb.getAbsoluteId();
 
                     if (this.sqlUtil.getSubmissionCountPerProblemPerTeam(cur.teamName,
-                        cur.problemIdAbsolute) >= GraderInfo.MAXIMUM_SUBMISSION_COUNT)
+                        cur.problemIdAbsolute) >= GraderInfo.MAXIMUM_SUBMISSION_COUNT
+                        && cur.state != SubmissionState.AWAITING_PROCESSING_OVERRIDE_ATTEMPT_LIMITS)
                     {
                         setSubmissionInvalid(cur, "SUBMISSION_COUNT_EXCEEDED");
                         // TODO: add reply that submission limit for the problem

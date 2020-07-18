@@ -40,9 +40,10 @@ public class GraderInfo
     public static final String PYTHON3_LOCATION             = "/usr/bin/python3";
     public static final String CSHARP_BUILD_LOCATION        = "/usr/bin/mcs";
     public static final String CSHARP_RUN_LOCATION          = "/usr/bin/mono";
+    public static final String BASH_SHELL_LOCATION          = "/bin/bash";
     public static final String SUBMISSION_UPLOAD_FOLDER     = "submissions";
-    public static final int COMPILE_MEM_LIMIT               = 256; // memory limit for program compilation, kilobytes.
-    public static final int EXECUTE_MEM_LIMIT               = 256; // memory limit for program execution, kilobytes.
+    public static final int COMPILE_MEM_LIMIT               = 256000; // memory limit for program compilation, kilobytes.
+    public static final int EXECUTE_MEM_LIMIT               = 256000; // memory limit for program execution, kilobytes.
     public static final long COMPILE_TIME_LIMIT             = 3000L;
     public static final long EXECUTE_TIME_LIMIT             = 3000L;
 }

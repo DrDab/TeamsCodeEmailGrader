@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import emailgrader.GraderInfo;
@@ -46,63 +47,53 @@ public class ProgramIOUtil
             toCompile.getParentFile().mkdir();
         }
         ArrayList<String> commandArgs = new ArrayList<String>();
-        commandArgs.add(String.format("ulimit -v %d && ", GraderInfo.COMPILE_MEM_LIMIT));
         String compiledFileName = null;
+
+        commandArgs.add(GraderInfo.BASH_SHELL_LOCATION);
+        commandArgs.add("-c");
+        String bashCommand = "";
+        bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
 
         switch (language)
         {
             case C:
                 compiledFileName = toCompile.getParent() + "/toExecute";
-                commandArgs.add(eld.getGCC());
-                commandArgs.add(toCompile.getAbsolutePath());
-                commandArgs.add("-lm");
-                commandArgs.add("-O2");
-                commandArgs.add("-o");
-                commandArgs.add(compiledFileName);
+                bashCommand += String.format("%s %s -lm -O2 -o %s", eld.getGCC(), toCompile.getAbsolutePath(),
+                    compiledFileName);
                 break;
 
             case C_PLUS_PLUS:
                 compiledFileName = toCompile.getParent() + "/toExecute";
-                commandArgs.add(eld.getGPP());
-                commandArgs.add(toCompile.getAbsolutePath());
-                commandArgs.add("--std=c++11");
-                commandArgs.add("-lm");
-                commandArgs.add("-O2");
-                commandArgs.add("-o");
-                commandArgs.add(compiledFileName);
+                bashCommand += String.format("%s %s --std=c++11 -lm -O2 -o %s", eld.getGPP(),
+                    toCompile.getAbsolutePath(), compiledFileName);
                 break;
 
             case JAVA:
                 compiledFileName = toCompile.getName().replace(".java", "");
-                commandArgs.add(eld.getJavac());
-                commandArgs.add("-source");
-                commandArgs.add("1.8");
-                commandArgs.add("-target");
-                commandArgs.add("1.8");
-                commandArgs.add(toCompile.getAbsolutePath());
-                commandArgs.add("-d");
-                commandArgs.add(toCompile.getParent());
+                bashCommand += String.format("%s -source 1.8 -target 1.8 %s -d %s", eld.getJavac(),
+                    toCompile.getAbsolutePath(), toCompile.getParent());
                 break;
 
             case C_SHARP:
                 compiledFileName = "toExecute.exe";
-                commandArgs.add(eld.getMCS());
-                commandArgs.add("-out:toExecute.exe");
-                commandArgs.add("-pkg:dotnet");
-                commandArgs.add(toCompile.getName());
+                bashCommand += String.format("%s -out:toExecute.exe -pkg:dotnet %s", eld.getMCS(), toCompile.getName());
                 break;
 
             case PYTHON_2:
             case PYTHON_3:
                 compiledFileName = toCompile.getName();
-                PostExecutionResults toReturn = new PostExecutionResults(null, null, null, 0.0, ExecutionResultStatus.SUCCESS);
+                PostExecutionResults toReturn = new PostExecutionResults(null, null, null, 0.0,
+                    ExecutionResultStatus.SUCCESS);
                 toReturn.miscInfo.put("compiledFileName", compiledFileName);
                 return toReturn;
-                
+
             default:
                 return new PostExecutionResults(null, null, null, 0.0, ExecutionResultStatus.SUCCESS);
         }
-        PostExecutionResults toReturn = runExecutable(null, commandArgs, null, submissionId + "_compile", toCompile.getParentFile(), timeoutMs);
+        bashCommand += "";
+        commandArgs.add(bashCommand);
+        PostExecutionResults toReturn = runExecutable(null, commandArgs, null, submissionId + "_compile",
+            toCompile.getParentFile(), timeoutMs);
         toReturn.miscInfo.put("compiledFileName", compiledFileName);
         return toReturn;
     }
@@ -116,39 +107,39 @@ public class ProgramIOUtil
         }
 
         ArrayList<String> commandArgs = new ArrayList<String>();
-        commandArgs.add(String.format("ulimit -v %d && ", GraderInfo.EXECUTE_MEM_LIMIT));
+        commandArgs.add(GraderInfo.BASH_SHELL_LOCATION);
+        commandArgs.add("-c");
+        String bashCommand = "";
+        bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
 
         switch (language)
         {
             case JAVA:
-                commandArgs.add(eld.getJava());
-                commandArgs.add("-cp");
-                commandArgs.add(toRun.getParent());
-                commandArgs.add(toRun.getName().replaceAll(".class", ""));
+                bashCommand += String.format("%s -cp %s %s", eld.getJava(), toRun.getParentFile().getAbsolutePath(),
+                    toRun.getName().replaceAll(".class", ""));
                 break;
 
             case C_SHARP:
-                commandArgs.add(eld.getCSharpRunner());
-                commandArgs.add(toRun.toString());
+                bashCommand += String.format("%s %s", eld.getCSharpRunner(), toRun.getAbsolutePath());
                 break;
 
             case PYTHON_2:
-                commandArgs.add(eld.getPython2());
-                commandArgs.add(toRun.toString());
+                bashCommand += String.format("%s %s", eld.getPython2(), toRun.getAbsolutePath());
                 break;
 
             case PYTHON_3:
-                commandArgs.add(eld.getPython3());
-                commandArgs.add(toRun.toString());
+                bashCommand += String.format("%s %s", eld.getPython3(), toRun.getAbsolutePath());
                 break;
 
             case C:
             case C_PLUS_PLUS:
             default:
-                commandArgs.add(toRun.toString());
+                bashCommand += toRun.getAbsolutePath();
                 break;
         }
-
+        bashCommand += "";
+        commandArgs.add(bashCommand);
+        
         return runExecutable(null, commandArgs, stdin, submissionId + "_execute", toRun.getParentFile(), timeoutMs);
     }
 
@@ -179,6 +170,7 @@ public class ProgramIOUtil
         {
             ArrayList<Integer> al = new ArrayList<Integer>();
             ProcessBuilder pb = new ProcessBuilder(pbArgs);
+            System.out.println(Arrays.toString(pb.command().toArray()));
             // pb.directory(new File(toRun.getParent()));
             pb.redirectOutput(programOutputFile);
             pb.redirectError(programErrFile);

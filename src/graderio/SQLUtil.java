@@ -328,9 +328,10 @@ public class SQLUtil
     {
         synchronized (this.sqlConnection)
         {
-            String query = "SELECT * FROM submissionsDb WHERE state = ? ORDER BY id ASC";
+            String query = "SELECT * FROM submissionsDb WHERE state = ? OR state = ? ORDER BY id ASC";
             PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
             stmt.setString(1, SubmissionState.AWAITING_PROCESSING.toString());
+            stmt.setString(2, SubmissionState.AWAITING_PROCESSING_OVERRIDE_ATTEMPT_LIMITS.toString());
             ResultSet rs = stmt.executeQuery();
             return this.getSubmissionFromResultSet(rs);
         }
@@ -340,9 +341,12 @@ public class SQLUtil
     {
         synchronized (this.sqlConnection)
         {
-            String query = "SELECT * FROM submissionsDb WHERE state = " + SubmissionState.PROCESSED_GRADED
+            String query = "SELECT * FROM submissionsDb WHERE state = ?"
                 + " AND teamName = ? AND problemIdAbsolute = ? ";
             PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
+            stmt.setString(1, SubmissionState.PROCESSED_GRADED.toString());
+            stmt.setString(2, teamName);
+            stmt.setInt(3, problemIdAbsolute);
             ResultSet rs = stmt.executeQuery();
             int i = 0;
             while (rs.next())
@@ -357,9 +361,10 @@ public class SQLUtil
     {
         synchronized (this.sqlConnection)
         {
-            String query = "SELECT * FROM submissionsDb WHERE state = ?";
+            String query = "SELECT * FROM submissionsDb WHERE state = ? OR state = ?";
             PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
             stmt.setString(1, SubmissionState.AWAITING_PROCESSING.toString());
+            stmt.setString(2, SubmissionState.AWAITING_PROCESSING_OVERRIDE_ATTEMPT_LIMITS.toString());
             ResultSet rs = stmt.executeQuery();
             int i = 0;
             while (rs.next())

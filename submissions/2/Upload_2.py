@@ -1,0 +1,3 @@
+owo = input()
+print(owo)
+

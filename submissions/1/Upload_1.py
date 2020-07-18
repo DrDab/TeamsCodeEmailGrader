@@ -1,0 +1,3 @@
+uwu = input()
+print(uwu)
+
