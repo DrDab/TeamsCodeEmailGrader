@@ -30,7 +30,7 @@ public class PostExecutionResults
     private String stdout;
     private String stderr;
     private double millis;
-    private ExecutionResultStatus executionResultStatus;
+    public ExecutionResultStatus executionResultStatus;
     public HashMap<String, String> miscInfo;
 
     public PostExecutionResults(String stdin, String stdout, String stderr, double millis,
@@ -69,9 +69,5 @@ public class PostExecutionResults
     {
         return this.millis;
     }
-
-    public ExecutionResultStatus getExecutionResultStatus()
-    {
-        return this.executionResultStatus;
-    }
+    
 }

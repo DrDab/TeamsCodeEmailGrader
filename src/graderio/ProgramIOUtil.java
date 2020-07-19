@@ -58,13 +58,13 @@ public class ProgramIOUtil
         {
             case C:
                 compiledFileName = "/toExecute";
-                bashCommand += String.format("%s %s -lm -O2 -o %s", eld.getGCC(), toCompile.getAbsolutePath(),
+                bashCommand += String.format("%s %s -lm -O2 -w -o %s", eld.getGCC(), toCompile.getAbsolutePath(),
                     toCompile.getParentFile().getAbsolutePath() + compiledFileName);
                 break;
 
             case C_PLUS_PLUS:
                 compiledFileName = "/toExecute";
-                bashCommand += String.format("%s %s --std=c++11 -lm -O2 -o %s", eld.getGPP(),
+                bashCommand += String.format("%s %s --std=c++11 -lm -O2 -w -o %s", eld.getGPP(),
                     toCompile.getAbsolutePath(), toCompile.getParentFile().getAbsolutePath() + compiledFileName);
                 break;
 
@@ -171,7 +171,7 @@ public class ProgramIOUtil
         {
             ArrayList<Integer> al = new ArrayList<Integer>();
             ProcessBuilder pb = new ProcessBuilder(pbArgs);
-            System.out.println(Arrays.toString(pb.command().toArray()));
+            //System.out.println(Arrays.toString(pb.command().toArray()));
             // pb.directory(new File(toRun.getParent()));
             pb.redirectOutput(programOutputFile);
             pb.redirectError(programErrFile);
@@ -217,7 +217,9 @@ public class ProgramIOUtil
 
             if (al.size() == 0)
             {
-                return new PostExecutionResults(stdin, stdout, stderr, timeTaken, ExecutionResultStatus.SUCCESS);
+                return new PostExecutionResults(stdin, stdout, stderr, timeTaken,
+                    stderr.trim().length() == 0 ? ExecutionResultStatus.SUCCESS
+                        : ExecutionResultStatus.FAILED_PROGRAM_ERR);
             }
             else
             {

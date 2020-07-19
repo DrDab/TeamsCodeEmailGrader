@@ -302,21 +302,26 @@ public class SubmissionProcessorRunnable implements Runnable
                     PostExecutionResults compileResults = this.programIOUtil.compileProgram(submissionName, codeFile,
                         programmingLanguage, GraderInfo.COMPILE_TIME_LIMIT);
 
-                    if (compileResults.getExecutionResultStatus() != ExecutionResultStatus.SUCCESS)
+                    // if we compiled successfully, try running the program.
+                    compiledFileName = compileResults.miscInfo.get("compiledFileName");
+                    File compiledFile = new File(submissionDir, compiledFileName);
+                    
+                    if (compiledFile.exists())
                     {
-                        setSubmissionInvalid(cur, compileResults.getExecutionResultStatus() + "");
+                        compileResults.executionResultStatus = ExecutionResultStatus.SUCCESS;
+                    }
+                    
+                    if (compileResults.executionResultStatus != ExecutionResultStatus.SUCCESS)
+                    {
+                        setSubmissionInvalid(cur, compileResults.executionResultStatus + "");
                         // TODO: add reply that compile failed for whatever
                         // reason given.
 
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
-
-                    // if we compiled successfully, try running the program.
-                    compiledFileName = compileResults.miscInfo.get("compiledFileName");
-                    File compiledFile = new File(submissionDir, compiledFileName);
                     
-                    System.out.println(compiledFile);
+                    //System.out.println(compiledFile);
 
                     System.out.printf("Running submission %d, l=%s, pid=%s, team=%s\n", cur.id, programmingLanguage,
                         problem.name, cur.teamName);
