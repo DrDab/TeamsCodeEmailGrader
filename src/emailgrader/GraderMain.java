@@ -13,6 +13,8 @@ import graderio.SQLUtil;
 import graderio.SubmissionProcessor;
 import graderobjects.UIDMessageEncapsulator;
 
+//import sheetsintegration.SheetsAuthUtil;
+
 public class GraderMain
 {
     public static void main(String[] args) throws IOException, MessagingException, SQLException, InterruptedException
@@ -46,5 +48,8 @@ public class GraderMain
             GraderInfo.PROCESSOR_QUERY_RATE);
         submissionProcessor.startProcessor();
         emailUtil.startQueryTask();
+        
+        //SheetsAuthUtil owo = new SheetsAuthUtil("TeamsCodeEmailGrader", "sheetsinfo/credentials.json", "tokens");
+        //owo.test();
     }
 }
