@@ -1,7 +1,0 @@
-Traceback (most recent call last):
-  File "/home/citrus/Documents/TeamsCode/TeamsCodeEmailGrader/submissions/3/Upload_3.py", line 1, in <module>
-    s4 = input()
-  File "<string>", line 1
-    Hello world!
-              ^
-SyntaxError: invalid syntax
