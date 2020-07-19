@@ -315,6 +315,8 @@ public class SubmissionProcessorRunnable implements Runnable
                     // if we compiled successfully, try running the program.
                     compiledFileName = compileResults.miscInfo.get("compiledFileName");
                     File compiledFile = new File(submissionDir, compiledFileName);
+                    
+                    System.out.println(compiledFile);
 
                     System.out.printf("Running submission %d, l=%s, pid=%s, team=%s\n", cur.id, programmingLanguage,
                         problem.name, cur.teamName);

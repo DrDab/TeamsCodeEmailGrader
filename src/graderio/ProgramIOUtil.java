@@ -57,26 +57,27 @@ public class ProgramIOUtil
         switch (language)
         {
             case C:
-                compiledFileName = toCompile.getParent() + "/toExecute";
+                compiledFileName = "/toExecute";
                 bashCommand += String.format("%s %s -lm -O2 -o %s", eld.getGCC(), toCompile.getAbsolutePath(),
-                    compiledFileName);
+                    toCompile.getParentFile().getAbsolutePath() + compiledFileName);
                 break;
 
             case C_PLUS_PLUS:
-                compiledFileName = toCompile.getParent() + "/toExecute";
+                compiledFileName = "/toExecute";
                 bashCommand += String.format("%s %s --std=c++11 -lm -O2 -o %s", eld.getGPP(),
-                    toCompile.getAbsolutePath(), compiledFileName);
+                    toCompile.getAbsolutePath(), toCompile.getParentFile().getAbsolutePath() + compiledFileName);
                 break;
 
             case JAVA:
                 compiledFileName = toCompile.getName().replace(".java", "");
                 bashCommand += String.format("%s -source 1.8 -target 1.8 %s -d %s", eld.getJavac(),
-                    toCompile.getAbsolutePath(), toCompile.getParent());
+                    toCompile.getAbsolutePath(), toCompile.getParentFile().getAbsolutePath());
                 break;
 
             case C_SHARP:
                 compiledFileName = "toExecute.exe";
-                bashCommand += String.format("%s -out:toExecute.exe -pkg:dotnet %s", eld.getMCS(), toCompile.getName());
+                bashCommand += String.format("%s -out:toExecute.exe -pkg:dotnet %s", eld.getMCS(),
+                    toCompile.getAbsolutePath());
                 break;
 
             case PYTHON_2:
@@ -139,7 +140,7 @@ public class ProgramIOUtil
         }
         bashCommand += "";
         commandArgs.add(bashCommand);
-        
+
         return runExecutable(null, commandArgs, stdin, submissionId + "_execute", toRun.getParentFile(), timeoutMs);
     }
 
@@ -216,9 +217,7 @@ public class ProgramIOUtil
 
             if (al.size() == 0)
             {
-                return new PostExecutionResults(stdin, stdout, stderr, timeTaken,
-                    stderr.trim().length() == 0 ? ExecutionResultStatus.SUCCESS
-                        : ExecutionResultStatus.FAILED_PROGRAM_ERR);
+                return new PostExecutionResults(stdin, stdout, stderr, timeTaken, ExecutionResultStatus.SUCCESS);
             }
             else
             {
