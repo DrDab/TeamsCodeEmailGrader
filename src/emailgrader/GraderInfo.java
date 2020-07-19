@@ -27,7 +27,7 @@ public class GraderInfo
     //
     public static final long PROCESSOR_QUERY_RATE           = 1000L; // query rate for submission processor to check queued submissions, milliseconds
     public static final String PROBLEM_SET_FOLDER           = "problems";
-    public static final int MAXIMUM_SUBMISSION_COUNT        = 2; // maximum submission count per problem, per team.
+    public static final int MAXIMUM_SUBMISSION_COUNT        = 20; // maximum submission count per problem, per team.
     
     //
     // ProgramIOUtil settings.
@@ -42,8 +42,8 @@ public class GraderInfo
     public static final String CSHARP_RUN_LOCATION          = "/usr/bin/mono";
     public static final String BASH_SHELL_LOCATION          = "/bin/bash";
     public static final String SUBMISSION_UPLOAD_FOLDER     = "submissions";
-    public static final int COMPILE_MEM_LIMIT               = 256000; // memory limit for program compilation, kilobytes.
-    public static final int EXECUTE_MEM_LIMIT               = 256000; // memory limit for program execution, kilobytes.
+    public static final int COMPILE_MEM_LIMIT               = 1000000; // memory limit for program compilation, kilobytes.
+    public static final int EXECUTE_MEM_LIMIT               = 256000;  // memory limit for program execution, kilobytes.
     public static final long COMPILE_TIME_LIMIT             = 3000L;
     public static final long EXECUTE_TIME_LIMIT             = 3000L;
 }

@@ -1,2 +1,0 @@
-/usr/bin/ld: /tmp/cckNrx2W.o: in function `main':
-Upload_3.c:(.text.startup+0xe): warning: the `gets' function is dangerous and should not be used.

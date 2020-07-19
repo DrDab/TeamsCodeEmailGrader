@@ -305,12 +305,13 @@ public class SubmissionProcessorRunnable implements Runnable
                     // if we compiled successfully, try running the program.
                     compiledFileName = compileResults.miscInfo.get("compiledFileName");
                     File compiledFile = new File(submissionDir, compiledFileName);
-                    
-                    if (compiledFile.exists())
+
+                    if (compiledFile.exists() && (programmingLanguage == ProgrammingLanguage.C_PLUS_PLUS
+                        || programmingLanguage == ProgrammingLanguage.C))
                     {
                         compileResults.executionResultStatus = ExecutionResultStatus.SUCCESS;
                     }
-                    
+
                     if (compileResults.executionResultStatus != ExecutionResultStatus.SUCCESS)
                     {
                         setSubmissionInvalid(cur, compileResults.executionResultStatus + "");
@@ -320,8 +321,8 @@ public class SubmissionProcessorRunnable implements Runnable
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
-                    
-                    //System.out.println(compiledFile);
+
+                    // System.out.println(compiledFile);
 
                     System.out.printf("Running submission %d, l=%s, pid=%s, team=%s\n", cur.id, programmingLanguage,
                         problem.name, cur.teamName);
@@ -344,6 +345,7 @@ public class SubmissionProcessorRunnable implements Runnable
                         String progStdOut = trimRight(testCaseResults.getStdOut());
                         String progStdErr = trimRight(testCaseResults.getStdErr());
                         System.out.printf("StdOut for %d: \"%s\"\n", i, progStdOut);
+                        System.out.printf("StdErr for %d: \"%s\"\n", i, progStdErr);
                         if (progStdOut.equals(stdOutString))
                         {
                             score++;

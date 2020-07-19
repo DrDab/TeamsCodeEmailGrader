@@ -1,3 +1,0 @@
-uwu = input()
-print(uwu)
-

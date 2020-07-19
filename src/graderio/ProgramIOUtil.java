@@ -52,32 +52,35 @@ public class ProgramIOUtil
         commandArgs.add(GraderInfo.BASH_SHELL_LOCATION);
         commandArgs.add("-c");
         String bashCommand = "";
-        bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
 
         switch (language)
         {
             case C:
                 compiledFileName = "/toExecute";
+                bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
                 bashCommand += String.format("%s %s -lm -O2 -w -o %s", eld.getGCC(), toCompile.getAbsolutePath(),
                     toCompile.getParentFile().getAbsolutePath() + compiledFileName);
                 break;
 
             case C_PLUS_PLUS:
                 compiledFileName = "/toExecute";
+                bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
                 bashCommand += String.format("%s %s --std=c++11 -lm -O2 -w -o %s", eld.getGPP(),
                     toCompile.getAbsolutePath(), toCompile.getParentFile().getAbsolutePath() + compiledFileName);
                 break;
 
             case JAVA:
                 compiledFileName = toCompile.getName().replace(".java", "");
-                bashCommand += String.format("%s -source 1.8 -target 1.8 %s -d %s", eld.getJavac(),
-                    toCompile.getAbsolutePath(), toCompile.getParentFile().getAbsolutePath());
+                bashCommand += String.format("%s -J-Xms%dK -J-Xmx%dK -source 1.8 -target 1.8 %s -d %s", eld.getJavac(),
+                    GraderInfo.COMPILE_MEM_LIMIT, GraderInfo.COMPILE_MEM_LIMIT, toCompile.getAbsolutePath(),
+                    toCompile.getParentFile().getAbsolutePath());
                 break;
 
             case C_SHARP:
-                compiledFileName = "toExecute.exe";
-                bashCommand += String.format("%s -out:toExecute.exe -pkg:dotnet %s", eld.getMCS(),
-                    toCompile.getAbsolutePath());
+                compiledFileName = "/toExecute.exe";
+                bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
+                bashCommand += String.format("%s -out:%s -pkg:dotnet %s", eld.getMCS(),
+                    toCompile.getParentFile().getAbsolutePath() + compiledFileName, toCompile.getAbsolutePath());
                 break;
 
             case PYTHON_2:
@@ -111,30 +114,34 @@ public class ProgramIOUtil
         commandArgs.add(GraderInfo.BASH_SHELL_LOCATION);
         commandArgs.add("-c");
         String bashCommand = "";
-        bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
 
         switch (language)
         {
             case JAVA:
-                bashCommand += String.format("%s -cp %s %s", eld.getJava(), toRun.getParentFile().getAbsolutePath(),
+                bashCommand += String.format("%s -Xms%dK -Xmx%dK -cp %s %s", eld.getJava(),
+                    GraderInfo.COMPILE_MEM_LIMIT, GraderInfo.COMPILE_MEM_LIMIT, toRun.getParentFile().getAbsolutePath(),
                     toRun.getName().replaceAll(".class", ""));
                 break;
 
             case C_SHARP:
+                bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
                 bashCommand += String.format("%s %s", eld.getCSharpRunner(), toRun.getAbsolutePath());
                 break;
 
             case PYTHON_2:
+                bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
                 bashCommand += String.format("%s %s", eld.getPython2(), toRun.getAbsolutePath());
                 break;
 
             case PYTHON_3:
+                bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
                 bashCommand += String.format("%s %s", eld.getPython3(), toRun.getAbsolutePath());
                 break;
 
             case C:
             case C_PLUS_PLUS:
             default:
+                bashCommand += "ulimit -v " + GraderInfo.EXECUTE_MEM_LIMIT + ";";
                 bashCommand += toRun.getAbsolutePath();
                 break;
         }
@@ -171,7 +178,7 @@ public class ProgramIOUtil
         {
             ArrayList<Integer> al = new ArrayList<Integer>();
             ProcessBuilder pb = new ProcessBuilder(pbArgs);
-            //System.out.println(Arrays.toString(pb.command().toArray()));
+            // System.out.println(Arrays.toString(pb.command().toArray()));
             // pb.directory(new File(toRun.getParent()));
             pb.redirectOutput(programOutputFile);
             pb.redirectError(programErrFile);
