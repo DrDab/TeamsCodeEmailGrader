@@ -6,13 +6,19 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Store;
 import javax.mail.internet.InternetAddress;
+
+import org.json.JSONObject;
 
 import emailgrader.GraderInfo;
 import graderobjects.ContestProblem;
 import graderobjects.ContestSubmission;
 import graderobjects.ContestTeam;
 import graderobjects.ExecutionResultStatus;
+import graderobjects.InvalidationReason;
 import graderobjects.PostExecutionResults;
 import graderobjects.ProblemBundle;
 import graderobjects.ProgrammingLanguage;
@@ -71,10 +77,12 @@ public class SubmissionProcessorRunnable implements Runnable
         return true;
     }
 
-    private void setSubmissionInvalid(ContestSubmission sub, String miscInfo)
+    private void setSubmissionInvalid(ContestSubmission sub, InvalidationReason invalidationReason)
     {
         sub.state = SubmissionState.PROCESSED_REJECTED;
-        sub.miscInfo = miscInfo;
+        JSONObject obj = new JSONObject();
+        obj.put("invalidationReason", invalidationReason.toString());
+        sub.miscInfo = obj.toString();
     }
 
     private PostExecutionResults runTestCase(int testCaseNum, String submissionName, File compiledFile, String stdin,
@@ -88,6 +96,14 @@ public class SubmissionProcessorRunnable implements Runnable
     private String trimRight(String toTrim)
     {
         return toTrim.replaceAll("\\s+$", "");
+    }
+
+    private void sendEmailReply(long emailUid, String replyContent) throws MessagingException
+    {
+        Store store = this.emailUtil.getStore();
+        Message replyTo = this.emailUtil.getMessageByUid(emailUid, store);
+        this.emailUtil.replyToMessage(replyTo, replyContent);
+        store.close();
     }
 
     @Override
@@ -107,6 +123,8 @@ public class SubmissionProcessorRunnable implements Runnable
                     // we will read the division and team name from
                     // x-referencing the sender email.
 
+                    JSONObject miscInfoJSONObject = new JSONObject();
+
                     String senderEmailStr = cur.senderEmail;
                     InternetAddress address = new InternetAddress(senderEmailStr);
                     String senderEmail = address.getAddress();
@@ -114,9 +132,17 @@ public class SubmissionProcessorRunnable implements Runnable
                     ContestTeam senderTeam = this.sqlUtil.getTeamFromEmail(senderEmail);
                     if (senderTeam == null)
                     {
-                        setSubmissionInvalid(cur, "INVALID_EMAIL_ACCESS_DENIED");
-                        // TODO: add reply that the email is unknown.
-
+                        InvalidationReason reason = InvalidationReason.INVALID_EMAIL_ACCESS_DENIED;
+                        setSubmissionInvalid(cur, reason);
+                        // TODO: add reply that the subject is missing.
+                        String reply = String.format("Hey %s,\n\n"
+                            + "We experienced an error while handling your submission. Reason: %s.\n"
+                            + "To fix this issue, please use the email you signed up for this contest with to submit your code.\n"
+                            + "Please resolve this issue. Your submission has not been graded, nor counted as part of the per-problem submission limit.\n"
+                            + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                            + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
+                            cur.senderEmail, reason);
+                        sendEmailReply(cur.uid, reply);
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
@@ -128,9 +154,17 @@ public class SubmissionProcessorRunnable implements Runnable
 
                     if (!validateSubject(subject))
                     {
-                        setSubmissionInvalid(cur, "SUBJECT_MISSING");
-                        // TODO: add reply that the subject is missing.
-
+                        InvalidationReason reason = InvalidationReason.SUBJECT_MISSING;
+                        setSubmissionInvalid(cur, reason);
+                        String reply = String.format("Hey %s (%s),\n\n"
+                            + "We experienced an error while handling your submission. Reason: %s.\n"
+                            + "To fix this issue, please write a valid subject, in the format as follows:.\n"
+                            + "Division, Team Name, Problem number and difficulty, programming language. (example: Intermediate, Team Foo, Easy #1, Python 2)\n"
+                            + "Your submission has not been graded, nor counted as part of the per-problem submission limit.\n"
+                            + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                            + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
+                            cur.teamName, cur.senderEmail, reason);
+                        sendEmailReply(cur.uid, reply);
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
@@ -141,10 +175,17 @@ public class SubmissionProcessorRunnable implements Runnable
 
                     if (!validateProblemBundle(pb) || programmingLanguage == null)
                     {
-                        setSubmissionInvalid(cur, "SUBJECT_INVALID");
-                        // TODO: add reply that the subject is incorrectly
-                        // formatted.
-
+                        InvalidationReason reason = InvalidationReason.SUBJECT_INVALID;
+                        setSubmissionInvalid(cur, reason);
+                        String reply = String.format("Hey %s (%s),\n\n"
+                            + "We experienced an error while handling your submission. Reason: %s.\n"
+                            + "To fix this issue, please write a valid subject, in the format as follows:.\n"
+                            + "Division, Team Name, Problem number and difficulty, programming language. (example: Intermediate, Team Foo, Easy #1, Python 2)\n"
+                            + "Your submission has not been graded, nor counted as part of the per-problem submission limit.\n"
+                            + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                            + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
+                            cur.teamName, cur.senderEmail, reason);
+                        sendEmailReply(cur.uid, reply);
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
@@ -153,24 +194,38 @@ public class SubmissionProcessorRunnable implements Runnable
                     cur.problemDifficulty = pb.problemDifficulty;
                     cur.problemIdAbsolute = pb.getAbsoluteId();
 
-                    if (this.sqlUtil.getSubmissionCountPerProblemPerTeam(cur.teamName,
-                        cur.problemIdAbsolute) >= GraderInfo.MAXIMUM_SUBMISSION_COUNT
+                    int submissions = this.sqlUtil.getSubmissionCountPerProblemPerTeam(cur.teamName,
+                        cur.problemIdAbsolute);
+
+                    if (submissions >= GraderInfo.MAXIMUM_SUBMISSION_COUNT
                         && cur.state != SubmissionState.AWAITING_PROCESSING_OVERRIDE_ATTEMPT_LIMITS)
                     {
-                        setSubmissionInvalid(cur, "SUBMISSION_COUNT_EXCEEDED");
-                        // TODO: add reply that submission limit for the problem
-                        // has been exceeded.
-
+                        InvalidationReason reason = InvalidationReason.SUBMISSION_COUNT_EXCEEDED;
+                        setSubmissionInvalid(cur, reason);
+                        String reply = String.format("Hey %s (%s),\n\n"
+                            + "We experienced an error while handling your submission. Reason: %s.\n"
+                            + "It seems you have exceeded the submission count limit per problem, per team. (the limit is %d submissions/problem/team.)\n"
+                            + "Your submission has not been graded, nor counted as part of the per-problem submission limit.\n"
+                            + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                            + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
+                            cur.teamName, cur.senderEmail, reason, GraderInfo.MAXIMUM_SUBMISSION_COUNT);
+                        sendEmailReply(cur.uid, reply);
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
 
                     if (programmingLanguage == ProgrammingLanguage.OTHER)
                     {
-                        setSubmissionInvalid(cur, "FOREIGN_PROGRAMMING_LANG");
-                        // TODO: add reply that specified language is
-                        // unrecognized.
-
+                        InvalidationReason reason = InvalidationReason.FOREIGN_PROGRAMMING_LANG;
+                        setSubmissionInvalid(cur, reason);
+                        String reply = String.format("Hey %s (%s),\n\n"
+                            + "We experienced an error while handling your submission. Reason: %s.\n"
+                            + "To fix this issue, please use a permitted language to submit your code. (allowed: C, C++, C#, Java, Python 2, Python 3)\n"
+                            + "Your submission has not been graded, nor counted as part of the per-problem submission limit.\n"
+                            + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                            + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
+                            cur.teamName, cur.senderEmail, reason);
+                        sendEmailReply(cur.uid, reply);
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
@@ -240,10 +295,16 @@ public class SubmissionProcessorRunnable implements Runnable
                         String className = ParserUtil.getMainJavaClassName(code);
                         if (className == null)
                         {
-                            setSubmissionInvalid(cur, "INVALID_JAVA_CLASS_NAME");
-                            // TODO: add reply that java class name is
-                            // unrecognized.
-
+                            InvalidationReason reason = InvalidationReason.INVALID_JAVA_CLASS_NAME;
+                            setSubmissionInvalid(cur, reason);
+                            String reply = String.format("Hey %s (%s),\n\n"
+                                + "We experienced an error while handling your submission. Reason: %s.\n"
+                                + "To fix this issue, please include a valid class name for the public class in your Java code.\n"
+                                + "Your submission has not been graded, nor counted as part of the per-problem submission limit.\n"
+                                + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                                + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
+                                cur.teamName, cur.senderEmail, reason);
+                            sendEmailReply(cur.uid, reply);
                             this.sqlUtil.updateSubmissionStatus(cur);
                             continue;
                         }
@@ -281,12 +342,16 @@ public class SubmissionProcessorRunnable implements Runnable
 
                     if (fileName == null)
                     {
-                        setSubmissionInvalid(cur, "INVALID_SRC_FILE_NAME");
-                        // TODO: add reply that source file name is invalid, and
-                        // to
-                        // declare the method with main method as public class
-                        // if using Java.
-
+                        InvalidationReason reason = InvalidationReason.INVALID_SRC_FILE_NAME;
+                        setSubmissionInvalid(cur, reason);
+                        String reply = String.format("Hey %s (%s),\n\n"
+                            + "We experienced an error while handling your submission. Reason: %s.\n"
+                            + "Please fix this issue and resubmit your code.\n"
+                            + "Your submission has not been graded, nor counted as part of the per-problem submission limit.\n"
+                            + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                            + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
+                            cur.teamName, cur.senderEmail, reason);
+                        sendEmailReply(cur.uid, reply);
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
@@ -314,10 +379,16 @@ public class SubmissionProcessorRunnable implements Runnable
 
                     if (compileResults.executionResultStatus != ExecutionResultStatus.SUCCESS)
                     {
-                        setSubmissionInvalid(cur, compileResults.executionResultStatus + "");
-                        // TODO: add reply that compile failed for whatever
-                        // reason given.
-
+                        InvalidationReason reason = InvalidationReason.COMPILE_ERROR;
+                        setSubmissionInvalid(cur, reason);
+                        String reply = String.format("Hey %s (%s),\n\n"
+                            + "We experienced an error while handling your submission. Reason: %s.\n"
+                            + "Please fix this issue and resubmit your code.\n"
+                            + "Your submission has not been graded, nor counted as part of the per-problem submission limit.\n"
+                            + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                            + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
+                            cur.teamName, cur.senderEmail, reason);
+                        sendEmailReply(cur.uid, reply);
                         this.sqlUtil.updateSubmissionStatus(cur);
                         continue;
                     }
@@ -328,6 +399,8 @@ public class SubmissionProcessorRunnable implements Runnable
                         problem.name, cur.teamName);
 
                     int score = 0;
+                    int errorCases = 0;
+
                     for (int i = 0; i < problem.inputOutputArgs.size(); i++)
                     {
                         System.out.printf("Test %d\n", i);
@@ -353,19 +426,27 @@ public class SubmissionProcessorRunnable implements Runnable
                         }
                         if (progStdErr.length() > 0)
                         {
-                            // error case
-                            // TODO: set state to processed error, send email
-                            // that the program threw an error. do not elaborate
-                            // on error (for security purposes). update
-                            // submission status and continue.
+                            errorCases++;
                         }
                     }
 
                     System.out.printf("Score for %d: %d\n", cur.id, score);
 
                     // TODO: send email reply with score.
-                    cur.miscInfo = "score=" + score;
+                    JSONObject obj = new JSONObject();
+                    obj.put("score", score);
+                    obj.put("errorCases", errorCases);
+
+                    String reply = String.format("Hey %s (%s),\n\n"
+                        + "You passed %d out of %d test cases correct for problem [%s #%d]. (%d error cases) This is submission %d of %d allowed submissions.\n"
+                        + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                        + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
+                        cur.teamName, cur.senderEmail, score, GraderInfo.POINTS_PER_PROBLEM, pb.problemDifficulty.toString(),
+                        pb.problemNumRelative, errorCases, submissions + 1, GraderInfo.MAXIMUM_SUBMISSION_COUNT);
+                    sendEmailReply(cur.uid, reply);
+
                     cur.state = SubmissionState.PROCESSED_GRADED;
+                    cur.miscInfo = obj.toString();
                     this.sqlUtil.updateSubmissionStatus(cur);
                 }
                 Thread.sleep(this.queryRate);

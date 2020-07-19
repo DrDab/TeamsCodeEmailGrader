@@ -28,6 +28,7 @@ public class GraderInfo
     public static final long PROCESSOR_QUERY_RATE           = 1000L; // query rate for submission processor to check queued submissions, milliseconds
     public static final String PROBLEM_SET_FOLDER           = "problems";
     public static final int MAXIMUM_SUBMISSION_COUNT        = 20; // maximum submission count per problem, per team.
+    public static final int POINTS_PER_PROBLEM              = 3;
     
     //
     // ProgramIOUtil settings.
