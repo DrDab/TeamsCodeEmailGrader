@@ -51,6 +51,7 @@ public class GraderInfo
     //
     // SheetsAuthUtil/SheetsInteractor settings.
     //
+    public static final boolean USE_SHEETS                  = true;
     public static final String SHEETS_APPLICATION_NAME      = "TeamsCodeEmailGrader";
     public static final String SHEETS_CRED_FILE_LOCATION    = "sheetsinfo/credentials.json";
     public static final String SHEETS_AUTH_TOKEN_FOLDER     = "tokens";

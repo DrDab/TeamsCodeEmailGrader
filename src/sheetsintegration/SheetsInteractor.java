@@ -65,6 +65,17 @@ public class SheetsInteractor
         }
         return null;
     }
+    
+    public Integer getCellValueInt(String searchRange) throws IOException
+    {
+        ValueRange response = this.sheetsService.spreadsheets().values().get(this.spreadsheetId, searchRange).execute();
+        List<List<Object>> values = response.getValues();
+        if (values == null || values.isEmpty())
+        {
+            return null;
+        }
+        return Integer.valueOf(values.get(0).get(0).toString());
+    }
 
     public UpdateValuesResponse writeCellValue(String cellRange, String toWrite) throws IOException
     {

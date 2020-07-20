@@ -439,6 +439,13 @@ public class SubmissionProcessorRunnable implements Runnable
                     JSONObject obj = new JSONObject();
                     obj.put("score", score);
                     obj.put("errorCases", errorCases);
+                    
+                    if (this.sheetsInteractor != null)
+                    {
+                        String cellRange = this.sheetsInteractor.getCellRange(cur.teamName, cur.contestDivision, pb.getAbsoluteId());
+                        int bestScore = Math.max(score, this.sheetsInteractor.getCellValueInt(cellRange));
+                        this.sheetsInteractor.writeCellValue(cellRange, bestScore);
+                    }
 
                     String reply = String.format("Hey %s (%s),\n\n"
                         + "You passed %d out of %d test cases correct for problem [%s #%d]. (%d error cases) This is submission %d of %d allowed submissions.\n"

@@ -46,10 +46,14 @@ public class GraderMain
             }
         };
         ProgramIOUtil programIOUtil = new ProgramIOUtil();
-        SheetsAuthUtil sheetsAuthUtil = new SheetsAuthUtil(GraderInfo.SHEETS_APPLICATION_NAME,
-            GraderInfo.SHEETS_CRED_FILE_LOCATION, GraderInfo.SHEETS_AUTH_TOKEN_FOLDER, false);
-        SheetsInteractor sheetsInteractor = new SheetsInteractor(
-            sheetsAuthUtil.getSheetsService(sheetsAuthUtil.getCredentials()), GraderInfo.SHEETS_SPREADSHEET_URLID);
+        SheetsAuthUtil sheetsAuthUtil = GraderInfo.USE_SHEETS
+            ? new SheetsAuthUtil(GraderInfo.SHEETS_APPLICATION_NAME, GraderInfo.SHEETS_CRED_FILE_LOCATION,
+                GraderInfo.SHEETS_AUTH_TOKEN_FOLDER, false)
+            : null;
+        SheetsInteractor sheetsInteractor = GraderInfo.USE_SHEETS
+            ? new SheetsInteractor(sheetsAuthUtil.getSheetsService(sheetsAuthUtil.getCredentials()),
+                GraderInfo.SHEETS_SPREADSHEET_URLID)
+            : null;
         SubmissionProcessor submissionProcessor = new SubmissionProcessor(sqlUtil, emailUtil, programIOUtil,
             sheetsInteractor, GraderInfo.PROCESSOR_QUERY_RATE);
         submissionProcessor.startProcessor();
