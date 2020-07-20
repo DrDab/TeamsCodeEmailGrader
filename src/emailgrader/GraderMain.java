@@ -13,8 +13,6 @@ import graderio.SQLUtil;
 import graderio.SubmissionProcessor;
 import graderobjects.UIDMessageEncapsulator;
 
-//import sheetsintegration.SheetsAuthUtil;
-
 public class GraderMain
 {
     public static void main(String[] args) throws IOException, MessagingException, SQLException, InterruptedException
@@ -49,7 +47,9 @@ public class GraderMain
         submissionProcessor.startProcessor();
         emailUtil.startQueryTask();
         
-        //SheetsAuthUtil owo = new SheetsAuthUtil("TeamsCodeEmailGrader", "sheetsinfo/credentials.json", "tokens");
-        //owo.test();
+        //SheetsAuthUtil owo = new SheetsAuthUtil("TeamsCodeEmailGrader", "sheetsinfo/credentials.json", "tokens", false);
+        //SheetsInteractor interactor = new SheetsInteractor(owo.getSheetsService(owo.getCredentials()), "1-frkc0jWCMBJ23HUELL0I0mpUn_-KyrpXOpSR53Ugc0");
+        //String range = interactor.getCellRange("Team A", ContestDivision.ADVANCED, 9);
+        //interactor.writeCellValue(range, 69);
     }
 }
