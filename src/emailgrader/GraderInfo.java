@@ -29,6 +29,9 @@ public class GraderInfo
     public static final String PROBLEM_SET_FOLDER           = "problems";
     public static final int MAXIMUM_SUBMISSION_COUNT        = 20; // maximum submission count per problem, per team.
     public static final int POINTS_PER_PROBLEM              = 3;
+    public static final boolean ENFORCE_TIME_LIMITS         = true;
+    public static final long CONTEST_START_DATE             = 1595707200000L; // milliseconds past 1970 midnight (UTC) that the contest starts. (this corresponds to 7/25, 1300 hrs UTC-7)
+    public static final long CONTEST_END_DATE               = 1595718000000L; // milliseconds past 1970 midnight (UTC) that the contest ends.   (this corresponds to 7/25, 1600 hrs UTC-7)
     
     //
     // ProgramIOUtil settings.
