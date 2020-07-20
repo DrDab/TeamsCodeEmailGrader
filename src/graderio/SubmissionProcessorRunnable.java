@@ -146,6 +146,26 @@ public class SubmissionProcessorRunnable implements Runnable
         String senderEmailStr = contestSubmission.senderEmail;
         InternetAddress address = new InternetAddress(senderEmailStr);
         String senderEmail = address.getAddress();
+        
+        if (GraderInfo.ENFORCE_TIME_LIMITS)
+        {
+            if (contestSubmission.date < GraderInfo.CONTEST_START_DATE || contestSubmission.date > GraderInfo.CONTEST_END_DATE)
+            {
+                InvalidationReason reason = InvalidationReason.TIME_LIMIT_VIOLATION;
+                setSubmissionInvalid(contestSubmission, reason);
+                // TODO: add reply that the subject is missing.
+                String reply = String.format("Hey %s,\n\n"
+                    + "We experienced an error while handling your submission. Reason: %s.\n"
+                    + "This either means you submitted your solution before the contest start time, or after the contest end time.\n"
+                    + "Your submission has not been graded, nor counted as part of the per-problem submission limit.\n"
+                    + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                    + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
+                    contestSubmission.senderEmail, reason);
+                sendEmailReply(contestSubmission.uid, reply);
+                this.sqlUtil.updateSubmissionStatus(contestSubmission);
+                return;
+            }
+        }
 
         ContestTeam senderTeam = this.sqlUtil.getTeamFromEmail(senderEmail);
         if (senderTeam == null)

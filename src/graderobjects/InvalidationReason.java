@@ -3,6 +3,7 @@ package graderobjects;
 public enum InvalidationReason
 {
     INVALID_EMAIL_ACCESS_DENIED,
+    TIME_LIMIT_VIOLATION,
     SUBJECT_MISSING,
     SUBJECT_INVALID,
     SUBMISSION_COUNT_EXCEEDED,
