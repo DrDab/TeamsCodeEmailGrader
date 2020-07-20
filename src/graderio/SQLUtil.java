@@ -341,12 +341,11 @@ public class SQLUtil
     {
         synchronized (this.sqlConnection)
         {
-            String query = "SELECT * FROM submissionsDb WHERE state = ?"
-                + " AND teamName = ? AND problemIdAbsolute = ? ";
+            String query = "SELECT * FROM submissionsDb WHERE "
+                + "teamName = ? AND problemIdAbsolute = ? ";
             PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
-            stmt.setString(1, SubmissionState.PROCESSED_GRADED.toString());
-            stmt.setString(2, teamName);
-            stmt.setInt(3, problemIdAbsolute);
+            stmt.setString(1, teamName);
+            stmt.setInt(2, problemIdAbsolute);
             ResultSet rs = stmt.executeQuery();
             int i = 0;
             while (rs.next())
