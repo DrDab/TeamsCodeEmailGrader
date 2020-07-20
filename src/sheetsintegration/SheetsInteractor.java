@@ -78,7 +78,7 @@ public class SheetsInteractor
             .update(this.spreadsheetId, cellRange, body).setValueInputOption("RAW").execute();
         return result;
     }
-    
+
     public UpdateValuesResponse writeCellValue(String cellRange, Integer toWrite) throws IOException
     {
         if (cellRange == null || toWrite == null)

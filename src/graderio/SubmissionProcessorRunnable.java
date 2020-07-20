@@ -23,6 +23,7 @@ import graderobjects.PostExecutionResults;
 import graderobjects.ProblemBundle;
 import graderobjects.ProgrammingLanguage;
 import graderobjects.SubmissionState;
+import sheetsintegration.SheetsInteractor;
 
 @SuppressWarnings("unused")
 public class SubmissionProcessorRunnable implements Runnable
@@ -31,16 +32,18 @@ public class SubmissionProcessorRunnable implements Runnable
     private SQLUtil sqlUtil;
     private EmailUtil emailUtil;
     private ProgramIOUtil programIOUtil;
+    private SheetsInteractor sheetsInteractor;
     private boolean finished;
     private long queryRate;
 
     public SubmissionProcessorRunnable(SubmissionProcessor submissionProcessor, SQLUtil sqlUtil, EmailUtil emailUtil,
-        ProgramIOUtil programIOUtil, long queryRate)
+        ProgramIOUtil programIOUtil, SheetsInteractor sheetsInteractor, long queryRate)
     {
         this.submissionProcessor = submissionProcessor;
         this.sqlUtil = sqlUtil;
         this.emailUtil = emailUtil;
         this.programIOUtil = programIOUtil;
+        this.sheetsInteractor = sheetsInteractor;
         this.finished = false;
         this.queryRate = queryRate;
     }
@@ -441,8 +444,9 @@ public class SubmissionProcessorRunnable implements Runnable
                         + "You passed %d out of %d test cases correct for problem [%s #%d]. (%d error cases) This is submission %d of %d allowed submissions.\n"
                         + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
                         + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
-                        cur.teamName, cur.senderEmail, score, GraderInfo.POINTS_PER_PROBLEM, pb.problemDifficulty.toString(),
-                        pb.problemNumRelative, errorCases, submissions + 1, GraderInfo.MAXIMUM_SUBMISSION_COUNT);
+                        cur.teamName, cur.senderEmail, score, GraderInfo.POINTS_PER_PROBLEM,
+                        pb.problemDifficulty.toString(), pb.problemNumRelative, errorCases, submissions + 1,
+                        GraderInfo.MAXIMUM_SUBMISSION_COUNT);
                     sendEmailReply(cur.uid, reply);
 
                     cur.state = SubmissionState.PROCESSED_GRADED;

@@ -1,6 +1,7 @@
 package emailgrader;
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.HashMap;
 
@@ -12,10 +13,13 @@ import graderio.ProgramIOUtil;
 import graderio.SQLUtil;
 import graderio.SubmissionProcessor;
 import graderobjects.UIDMessageEncapsulator;
+import sheetsintegration.SheetsAuthUtil;
+import sheetsintegration.SheetsInteractor;
 
 public class GraderMain
 {
-    public static void main(String[] args) throws IOException, MessagingException, SQLException, InterruptedException
+    public static void main(String[] args)
+        throws IOException, MessagingException, SQLException, InterruptedException, GeneralSecurityException
     {
         SQLUtil sqlUtil = new SQLUtil(GraderInfo.GRADER_DATA_SQLITE_FILE);
         EmailUtil emailUtil = new EmailUtil(GraderInfo.IMAP_HOSTNAME, GraderInfo.IMAP_PORT, GraderInfo.IMAP_USE_TLS,
@@ -42,14 +46,13 @@ public class GraderMain
             }
         };
         ProgramIOUtil programIOUtil = new ProgramIOUtil();
+        SheetsAuthUtil sheetsAuthUtil = new SheetsAuthUtil(GraderInfo.SHEETS_APPLICATION_NAME,
+            GraderInfo.SHEETS_CRED_FILE_LOCATION, GraderInfo.SHEETS_AUTH_TOKEN_FOLDER, false);
+        SheetsInteractor sheetsInteractor = new SheetsInteractor(
+            sheetsAuthUtil.getSheetsService(sheetsAuthUtil.getCredentials()), GraderInfo.SHEETS_SPREADSHEET_URLID);
         SubmissionProcessor submissionProcessor = new SubmissionProcessor(sqlUtil, emailUtil, programIOUtil,
-            GraderInfo.PROCESSOR_QUERY_RATE);
+            sheetsInteractor, GraderInfo.PROCESSOR_QUERY_RATE);
         submissionProcessor.startProcessor();
         emailUtil.startQueryTask();
-        
-        //SheetsAuthUtil owo = new SheetsAuthUtil("TeamsCodeEmailGrader", "sheetsinfo/credentials.json", "tokens", false);
-        //SheetsInteractor interactor = new SheetsInteractor(owo.getSheetsService(owo.getCredentials()), "1-frkc0jWCMBJ23HUELL0I0mpUn_-KyrpXOpSR53Ugc0");
-        //String range = interactor.getCellRange("Team A", ContestDivision.ADVANCED, 9);
-        //interactor.writeCellValue(range, 69);
     }
 }

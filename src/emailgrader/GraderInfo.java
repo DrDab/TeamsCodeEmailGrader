@@ -47,4 +47,12 @@ public class GraderInfo
     public static final int EXECUTE_MEM_LIMIT               = 256000;  // memory limit for program execution, kilobytes.
     public static final long COMPILE_TIME_LIMIT             = 3000L;
     public static final long EXECUTE_TIME_LIMIT             = 3000L;
+    
+    //
+    // SheetsAuthUtil/SheetsInteractor settings.
+    //
+    public static final String SHEETS_APPLICATION_NAME      = "TeamsCodeEmailGrader";
+    public static final String SHEETS_CRED_FILE_LOCATION    = "sheetsinfo/credentials.json";
+    public static final String SHEETS_AUTH_TOKEN_FOLDER     = "tokens";
+    public static final String SHEETS_SPREADSHEET_URLID     = "1-frkc0jWCMBJ23HUELL0I0mpUn_-KyrpXOpSR53Ugc0";
 }
