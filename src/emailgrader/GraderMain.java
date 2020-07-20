@@ -55,7 +55,7 @@ public class GraderMain
                 GraderInfo.SHEETS_SPREADSHEET_URLID)
             : null;
         SubmissionProcessor submissionProcessor = new SubmissionProcessor(sqlUtil, emailUtil, programIOUtil,
-            sheetsInteractor, GraderInfo.PROCESSOR_QUERY_RATE);
+            sheetsInteractor, GraderInfo.PROCESSOR_QUERY_RATE, GraderInfo.MAX_PROCESSOR_THREADS);
         submissionProcessor.startProcessor();
         emailUtil.startQueryTask();
     }

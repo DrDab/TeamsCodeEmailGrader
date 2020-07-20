@@ -12,9 +12,10 @@ public class SubmissionProcessor
     private SubmissionProcessorRunnable submissionProcessorRunnable;
     private boolean stop;
     private long queryRate;
+    private int numThreadsMax;
 
     public SubmissionProcessor(SQLUtil sqlUtil, EmailUtil emailUtil, ProgramIOUtil programIOUtil,
-        SheetsInteractor sheetsInteractor, long queryRate)
+        SheetsInteractor sheetsInteractor, long queryRate, int numThreadsMax)
     {
         this.sqlUtil = sqlUtil;
         this.emailUtil = emailUtil;
@@ -22,8 +23,9 @@ public class SubmissionProcessor
         this.sheetsInteractor = sheetsInteractor;
         this.stop = true;
         this.queryRate = queryRate;
+        this.numThreadsMax = numThreadsMax;
         this.submissionProcessorRunnable = new SubmissionProcessorRunnable(this, this.sqlUtil, this.emailUtil,
-            this.programIOUtil, this.sheetsInteractor, this.queryRate);
+            this.programIOUtil, this.sheetsInteractor, this.queryRate, this.numThreadsMax);
         this.processorThread = new Thread(this.submissionProcessorRunnable);
     }
 
@@ -32,7 +34,7 @@ public class SubmissionProcessor
         if (this.submissionProcessorRunnable.isFinished())
         {
             this.submissionProcessorRunnable = new SubmissionProcessorRunnable(this, this.sqlUtil, this.emailUtil,
-                this.programIOUtil, this.sheetsInteractor, this.queryRate);
+                this.programIOUtil, this.sheetsInteractor, this.queryRate, this.numThreadsMax);
             this.processorThread = new Thread(this.submissionProcessorRunnable);
         }
         this.stop = false;
