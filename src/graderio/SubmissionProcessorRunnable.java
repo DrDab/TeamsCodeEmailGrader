@@ -1,7 +1,6 @@
 package graderio;
 
 import java.io.File;
-import java.util.HashMap;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -29,7 +28,6 @@ public class SubmissionProcessorRunnable implements Runnable
     private long queryRate;
     int numThreads;
     private int numThreadsMax;
-    private HashMap<Integer, Boolean> childThreadsStatus;
 
     public SubmissionProcessorRunnable(SubmissionProcessor submissionProcessor, SQLUtil sqlUtil, EmailUtil emailUtil,
         ProgramIOUtil programIOUtil, SheetsInteractor sheetsInteractor, long queryRate, int numThreadsMax)
@@ -43,7 +41,6 @@ public class SubmissionProcessorRunnable implements Runnable
         this.queryRate = queryRate;
         this.numThreadsMax = numThreadsMax;
         this.numThreads = 0;
-        this.childThreadsStatus = new HashMap<>();
     }
 
     boolean validateSubject(String subject)
