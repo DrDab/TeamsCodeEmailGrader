@@ -48,6 +48,8 @@ public class GraderInfo
     public static final String CSHARP_RUN_LOCATION          = "/usr/bin/mono";
     public static final String BASH_SHELL_LOCATION          = "/bin/bash";
     public static final String SUBMISSION_UPLOAD_FOLDER     = "submissions";
+    public static final boolean RUN_AS_ANOTHER_USER         = true;
+    public static final String OTHER_USERNAME               = "launchtestrun";
     public static final int COMPILE_MEM_LIMIT               = 1000000; // memory limit for program compilation, kilobytes.
     public static final int EXECUTE_MEM_LIMIT               = 256000;  // memory limit for program execution, kilobytes.
     public static final long COMPILE_TIME_LIMIT             = 3000L;

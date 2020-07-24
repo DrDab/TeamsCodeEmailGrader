@@ -114,6 +114,11 @@ public class ProgramIOUtil
         commandArgs.add(GraderInfo.BASH_SHELL_LOCATION);
         commandArgs.add("-c");
         String bashCommand = "";
+        
+        if (GraderInfo.RUN_AS_ANOTHER_USER)
+        {
+            bashCommand += String.format("sudo -u %s ", GraderInfo.OTHER_USERNAME);
+        }
 
         switch (language)
         {

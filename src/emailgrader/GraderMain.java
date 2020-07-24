@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Scanner;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -21,6 +22,8 @@ public class GraderMain
     public static void main(String[] args)
         throws IOException, MessagingException, SQLException, InterruptedException, GeneralSecurityException
     {
+        Scanner sc = new Scanner(System.in);
+        
         SQLUtil sqlUtil = new SQLUtil(GraderInfo.GRADER_DATA_SQLITE_FILE);
         EmailUtil emailUtil = new EmailUtil(GraderInfo.IMAP_HOSTNAME, GraderInfo.IMAP_PORT, GraderInfo.IMAP_USE_TLS,
             GraderInfo.SMTP_HOSTNAME, GraderInfo.SMTP_PORT, GraderInfo.SMTP_USE_TLS, GraderInfo.EMAIL_LOGIN_ADDR,
@@ -58,5 +61,6 @@ public class GraderMain
             sheetsInteractor, GraderInfo.PROCESSOR_QUERY_RATE, GraderInfo.MAX_PROCESSOR_THREADS);
         submissionProcessor.startProcessor();
         emailUtil.startQueryTask();
+        sc.close();
     }
 }
