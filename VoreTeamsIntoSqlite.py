@@ -24,12 +24,20 @@ with open(CSV_FILENAME, newline='') as csvfile:
         print ("%s [%s]) %s,%s,%s,%s" % (teamName, division, email1, email2, email3, email4))
         if email1.strip() == "":
             email1 = None
+        else:
+            email1 = email1.lower()
         if email2.strip() == "":
             email2 = None
+        else:
+            email2 = email2.lower()
         if email3.strip() == "":
             email3 = None
+        else:
+            email3 = email3.lower()
         if email4.strip() == "":
             email4 = None
+        else:
+            email4 = email4.lower()
         c.executemany("INSERT INTO contestantsDb(name, division, email1, email2, email3, email4) VALUES(?,?,?,?,?,?)", [(teamName, division, email1, email2, email3, email4)])
         conn.commit()
 print("Done.")

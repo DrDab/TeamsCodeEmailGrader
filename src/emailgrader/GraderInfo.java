@@ -19,7 +19,7 @@ public class GraderInfo
     public static final boolean SMTP_USE_TLS                = true; // whether to use TLS for SMTP authentication
     public static final String EMAIL_LOGIN_ADDR             = "user@gmail.com";  // TODO: change this!
     public static final String EMAIL_LOGIN_PWD              = "YourPasswordOwO"; // TODO: change this too!
-    public static final long EMAIL_INBOX_REFRESH_RATE       = 10000L; // refresh rate for checking email inbox, milliseconds
+    public static final long EMAIL_INBOX_REFRESH_RATE       = 5000L; // refresh rate for checking email inbox, milliseconds
     public static final int MAX_ATTACHMENT_SIZE             = 50000; // maximum size of email attachment, bytes. (default = 50KB)
     
     //
@@ -28,10 +28,10 @@ public class GraderInfo
     public static final int MAX_PROCESSOR_THREADS           = 8;
     public static final long PROCESSOR_QUERY_RATE           = 1000L; // query rate for submission processor to check queued submissions, milliseconds
     public static final String PROBLEM_SET_FOLDER           = "problems";
-    public static final int MAXIMUM_SUBMISSION_COUNT        = 20; // maximum submission count per problem, per team.
+    public static final int MAXIMUM_SUBMISSION_COUNT        = 2; // maximum submission count per problem, per team.
     public static final int POINTS_PER_PROBLEM              = 3;
-    public static final boolean ENFORCE_TIME_LIMITS         = true;
-    public static final long CONTEST_START_DATE             = 1595707200000L; // milliseconds past 1970 midnight (UTC) that the contest starts. (this corresponds to 7/25, 1300 hrs UTC-7)
+    public static final boolean ENFORCE_TIME_LIMITS         = false;
+    public static final long CONTEST_START_DATE             = 1595707200000L - 300000L; // milliseconds past 1970 midnight (UTC) that the contest starts. (this corresponds to 7/25, 1255 hrs UTC-7)
     public static final long CONTEST_END_DATE               = 1595718000000L; // milliseconds past 1970 midnight (UTC) that the contest ends.   (this corresponds to 7/25, 1600 hrs UTC-7)
     
     //

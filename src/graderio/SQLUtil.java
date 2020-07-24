@@ -134,6 +134,10 @@ public class SQLUtil
 
     public ContestTeam getTeamFromEmail(String email) throws SQLException
     {
+        if (email == null)
+        {
+            return null;
+        }
         String query = "SELECT * FROM contestantsDb WHERE ";
         int limit = 6; // TODO: don't make the limit hard-coded
         for (int i = 1; i <= limit; i++)
@@ -148,7 +152,7 @@ public class SQLUtil
         PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
         for (int i = 1; i <= limit; i++)
         {
-            stmt.setString(i, email);
+            stmt.setString(i, email.toLowerCase());
         }
         ResultSet rs = stmt.executeQuery();
         return getTeamFromResultSet(rs);
