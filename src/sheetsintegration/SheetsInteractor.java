@@ -8,6 +8,7 @@ import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
 import com.google.api.services.sheets.v4.model.ValueRange;
 
+import emailgrader.GraderInfo;
 import graderobjects.ContestDivision;
 
 public class SheetsInteractor
@@ -20,8 +21,8 @@ public class SheetsInteractor
         this.sheetsService = sheetsService;
         this.spreadsheetId = spreadsheetId;
     }
-
-    public String getCellRange(String teamName, ContestDivision division, int problemAbsoluteId) throws IOException
+    
+    public String getCellRangeForTeamTotalScore(String teamName, ContestDivision division) throws IOException
     {
         if (teamName == null || division == null)
         {
@@ -38,7 +39,51 @@ public class SheetsInteractor
             rangePart0 = "Intermediate";
         }
 
-        String rangePart1 = "A2:A75";
+        String rangePart1 = "A2:A" + (GraderInfo.MAX_NUM_TEAMS_PER_DIVISION + 1);
+
+        final String searchRange = rangePart0 + "!" + rangePart1;
+
+        ValueRange response = this.sheetsService.spreadsheets().values().get(this.spreadsheetId, searchRange).execute();
+        List<List<Object>> values = response.getValues();
+        if (values == null || values.isEmpty())
+        {
+            return null;
+        }
+        else
+        {
+            for (int i = 0; i < values.size(); i++)
+            {
+                List<Object> row = values.get(i);
+                String curTeam = row.get(0).toString();
+                if (teamName.equals(curTeam))
+                {
+                    int rowActual = i + 2;
+                    char colLetter = 'Q';
+                    return rangePart0 + "!" + colLetter + "" + rowActual;
+                }
+            }
+        }
+        return null;
+    }
+
+    public String getCellRangeForProblem(String teamName, ContestDivision division, int problemAbsoluteId) throws IOException
+    {
+        if (teamName == null || division == null)
+        {
+            return null;
+        }
+
+        String rangePart0 = "";
+        if (division == ContestDivision.ADVANCED)
+        {
+            rangePart0 = "Advanced";
+        }
+        else if (division == ContestDivision.INTERMEDIATE)
+        {
+            rangePart0 = "Intermediate";
+        }
+
+        String rangePart1 = "A2:A" + (GraderInfo.MAX_NUM_TEAMS_PER_DIVISION + 1);
 
         final String searchRange = rangePart0 + "!" + rangePart1;
 
@@ -108,7 +153,7 @@ public class SheetsInteractor
     @SuppressWarnings("unused")
     private void doOwO() throws IOException
     {
-        final String searchRange = "Intermediate!A2:A75";
+        final String searchRange = "Intermediate!A2:A" + (GraderInfo.MAX_NUM_TEAMS_PER_DIVISION + 1);
 
         ValueRange response = this.sheetsService.spreadsheets().values().get(spreadsheetId, searchRange).execute();
         List<List<Object>> values = response.getValues();

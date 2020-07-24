@@ -33,6 +33,7 @@ public class GraderInfo
     public static final boolean ENFORCE_TIME_LIMITS         = false;
     public static final long CONTEST_START_DATE             = 1595707200000L - 300000L; // milliseconds past 1970 midnight (UTC) that the contest starts. (this corresponds to 7/25, 1255 hrs UTC-7)
     public static final long CONTEST_END_DATE               = 1595718000000L; // milliseconds past 1970 midnight (UTC) that the contest ends.   (this corresponds to 7/25, 1600 hrs UTC-7)
+    public static final int MAX_NUM_TEAMS_PER_DIVISION      = 200;
     
     //
     // ProgramIOUtil settings.

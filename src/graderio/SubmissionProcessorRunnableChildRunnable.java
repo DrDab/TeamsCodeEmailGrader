@@ -379,21 +379,40 @@ public class SubmissionProcessorRunnableChildRunnable implements Runnable
             obj.put("score", score);
             obj.put("errorCases", errorCases);
 
+            String sheetsInfoStr = "";
+
             if (parentRunnable.sheetsInteractor != null)
             {
-                String cellRange = parentRunnable.sheetsInteractor.getCellRange(contestSubmission.teamName,
-                    contestSubmission.contestDivision, pb.getAbsoluteId());
-                int bestScore = Math.max(score, parentRunnable.sheetsInteractor.getCellValueInt(cellRange));
-                parentRunnable.sheetsInteractor.writeCellValue(cellRange, bestScore);
+                String problemCellRange = parentRunnable.sheetsInteractor.getCellRangeForProblem(
+                    contestSubmission.teamName, contestSubmission.contestDivision, pb.getAbsoluteId());
+                if (problemCellRange != null)
+                {
+                    Integer prevScore = parentRunnable.sheetsInteractor.getCellValueInt(problemCellRange);
+                    if (prevScore != null)
+                    {
+                        int bestScore = Math.max(score, prevScore);
+                        parentRunnable.sheetsInteractor.writeCellValue(problemCellRange, bestScore);
+                    }
+                }
+                String totalScoreCellRange = parentRunnable.sheetsInteractor
+                    .getCellRangeForTeamTotalScore(contestSubmission.teamName, contestSubmission.contestDivision);
+                if (totalScoreCellRange != null)
+                {
+                    Integer totalScore = parentRunnable.sheetsInteractor.getCellValueInt(totalScoreCellRange);
+                    if (totalScore != null)
+                    {
+                        sheetsInfoStr = String.format("Your total score so far is: %d", totalScore);
+                    }
+                }
             }
 
             String reply = String.format("Hey %s (%s),\n\n"
                 + "You passed %d out of %d test cases correct for problem [%s #%d]. (%d error cases) This is submission %d of %d allowed submissions.\n"
-                + "\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
+                + "%s\n\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
                 + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
                 contestSubmission.teamName, contestSubmission.senderEmail, score, GraderInfo.POINTS_PER_PROBLEM,
                 pb.problemDifficulty.toString(), pb.problemNumRelative, errorCases, submissions + 1,
-                GraderInfo.MAXIMUM_SUBMISSION_COUNT);
+                GraderInfo.MAXIMUM_SUBMISSION_COUNT, sheetsInfoStr);
             parentRunnable.sendEmailReply(contestSubmission.uid, reply);
 
             contestSubmission.state = SubmissionState.PROCESSED_GRADED;
