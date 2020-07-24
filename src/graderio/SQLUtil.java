@@ -138,6 +138,7 @@ public class SQLUtil
         {
             return null;
         }
+        String emailLower = email.toLowerCase();
         String query = "SELECT * FROM contestantsDb WHERE ";
         int limit = 6; // TODO: don't make the limit hard-coded
         for (int i = 1; i <= limit; i++)
@@ -152,7 +153,7 @@ public class SQLUtil
         PreparedStatement stmt = this.sqlConnection.prepareStatement(query);
         for (int i = 1; i <= limit; i++)
         {
-            stmt.setString(i, email.toLowerCase());
+            stmt.setString(i, emailLower);
         }
         ResultSet rs = stmt.executeQuery();
         return getTeamFromResultSet(rs);
