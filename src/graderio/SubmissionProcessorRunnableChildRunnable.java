@@ -193,7 +193,8 @@ public class SubmissionProcessorRunnableChildRunnable implements Runnable
                             break;
 
                         case C_PLUS_PLUS:
-                            attachmentTargeted = key.contains(".cpp") || key.contains(".cc");
+                            attachmentTargeted = key.contains(".cpp") || key.contains(".cc") || key.contains(".C")
+                                || key.contains(".cxx") || key.contains(".c++");
                             break;
 
                         case C:
