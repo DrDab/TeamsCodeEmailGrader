@@ -193,7 +193,7 @@ public class SubmissionProcessorRunnableChildRunnable implements Runnable
                             break;
 
                         case C_PLUS_PLUS:
-                            attachmentTargeted = key.contains(".cpp");
+                            attachmentTargeted = key.contains(".cpp") || key.contains(".cc");
                             break;
 
                         case C:
@@ -411,7 +411,7 @@ public class SubmissionProcessorRunnableChildRunnable implements Runnable
                 + "%s\n\n\n" + "Best,\n\n" + "TeamsCode Staff\n"
                 + "NOTE: This reply was automatically generated. For technical assistance, please message TeamsCode contest organizers.",
                 contestSubmission.teamName, contestSubmission.senderEmail, score, GraderInfo.POINTS_PER_PROBLEM,
-                pb.problemDifficulty.toString(), pb.problemNumRelative, errorCases, submissions,
+                pb.problemDifficulty.toString(), pb.problemNumRelative, errorCases, submissions + 1,
                 GraderInfo.MAXIMUM_SUBMISSION_COUNT, sheetsInfoStr);
             parentRunnable.sendEmailReply(contestSubmission.uid, reply);
 
